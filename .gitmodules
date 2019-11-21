@@ -1,0 +1,3 @@
+[submodule "modules/Biomass_core"]
+	path = modules/Biomass_core
+	url = https://github.com/PredictiveEcology/Biomass_core.git
