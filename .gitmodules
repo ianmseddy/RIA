@@ -1,3 +1,15 @@
 [submodule "modules/Biomass_core"]
 	path = modules/Biomass_core
 	url = https://github.com/PredictiveEcology/Biomass_core.git
+[submodule "modules/Biomass_borealDataPrep"]
+	path = modules/Biomass_borealDataPrep
+	url = https://github.com/PredictiveEcology/Biomass_borealDataPrep.git
+[submodule "modules/Biomass_speciesData"]
+	path = modules/Biomass_speciesData
+	url = https://github.com/PredictiveEcology/Biomass_speciesData.git
+[submodule "modules/PSP_Clean"]
+	path = modules/PSP_Clean
+	url = https://github.com/ianmseddy/PSP_Clean.git
+[submodule "modules/gmcsDataPrep"]
+	path = modules/gmcsDataPrep
+	url = https://github.com/ianmseddy/gmcsDataPrep.git
