@@ -4,43 +4,49 @@ library(LandR)
 library(sf)
 library(data.table)
 googledrive::drive_auth(email = "ianmseddy@gmail.com")
-spadesModulesDirectory <- file.path("modules") # where modules are 
-modules <- list("Boreal_LBMRDataPrep", "LBMR", "Biomass_regeneration", "PSP_Clean", "gmcsDataPrep",
-                "scfmLandcoverInit", "scfmRegime", "scfmDriver", "scfmIgnition", "scfmEscape", "scfmSpread")
+spadesModulesDirectory <- file.path("modules") # where modules are
+modules <- list("Biomass_speciesData", "Biomass_borealDataPrep", "Biomass_core", "Biomass_regeneration", "PSP_Clean",
+                "gmcsDataPrep", "scfmLandcoverInit", "scfmRegime", "scfmDriver", "scfmIgnition", "scfmEscape", "scfmSpread")
 
 
 times <- list(start = 2011, end = 2100)
 
 #Change the TSA to either Ft St John or Ft Nelson
-studyArea <- shapefile("C:/Ian/Campbell/RIA/Land-R/inputs/ftStJohn_studyArea.shp")
-studyAreaLarge <- shapefile("C:/Ian/Campbell/RIA/Land-R/inputs/RIA_studyAreaLarge.shp")
+studyArea <- shapefile("inputs/ftStJohn_studyArea.shp")
+studyAreaLarge <- shapefile("inputs/RIA_fiveTSA.shp")
+fireRegimePolys <- shapefile("inputs/RIA_fireRegimePolys_ED.shp")
 rasterToMatch <- Cache(prepInputsLCC, destinationPath = tempdir(), studyArea = studyArea, filename2 = "RIA_testArea", overwrite = TRUE)
 studyArea <- spTransform(x = studyArea, CRSobj = crs(rasterToMatch))
 studyAreaLarge <- spTransform(x = studyAreaLarge, CRSobj = crs(rasterToMatch))
+fireRegimePolys <- spTransform(fireRegimePolys, crs(studyAreaLarge))
 # writeOGR(studyArea, dsn = "C:/Ian/Campbell/RIA/Land-R/inputs", layer = "ftStJohn_studyArea", driver = "ESRI Shapefile")
 # writeOGR(studyAreaLarge, dsn = "C:/Ian/Campbell/RIA/Land-R/inputs", layer = "RIA_studyAreaLarge", driver = "ESRI Shapefile")
 
 studyAreaPSP <- studyAreaLarge
 
 parameters <- list(
-  LBMR = list(.plotInitialTime = 2011,
-              seedingAlgorithm = "wardDispersal",
-              .plotInterval = 10,
-              .useCache = "init",
-              successionTimestep = 10,
-              initialBiomassSource = "cohortData",
-              sppEquivCol = "RIA",
-              growthAndMortalityDrivers = "LandR.CS",
-              vegLeadingProportion = 0,
-              .saveInitialTime = 2021), 
-  Boreal_LBMRDataPrep = list(
-    successionTimestep = 10,
-    pixelGroupAgeClass = 10,
-    sppEquivCol = 'RIA',
-    subsetDataBiomassModel = 50),
+  Biomass_speciesData = list(
+    sppEquivCol = "RIA",
+    type = c("KNN", "CASFRI")),
+  Biomass_core = list(
+    .plotInitialTime = 2011
+    , seedingAlgorithm = "wardDispersal"
+    , .plotInterval = 10
+    , .useCache = "init"
+    , successionTimestep = 10
+    , initialBiomassSource = "cohortData"
+    , sppEquivCol = "RIA"
+    , growthAndMortalityDrivers = "LandR.CS"
+    , vegLeadingProportion = 0
+    , .saveInitialTime = 2021),
+  Biomass_borealDataPrep = list(
+    successionTimestep = 10
+    , pixelGroupAgeClass = 10
+    , sppEquivCol = 'RIA'
+    , subsetDataBiomassModel = 20),
   scfmSpread = list(
-    .plotInitialTime = NA,
-    .plotInterval = 1),
+    .plotInitialTime = NA
+    , .plotInterval = 1),
   scfmLandcoverInit = list(
     .plotInitialTime = NA),
   scfmDriver = list(
@@ -55,7 +61,7 @@ parameters <- list(
 
 ## Paths are not workign with multiple module paths yet
 setPaths(cachePath =  file.path(getwd(), "cache"),
-         modulePath = c(file.path(getwd(), "modules"), file.path(getwd(),"modules/scfm/modules")), #if running scfm, 
+         modulePath = c(file.path(getwd(), "modules"), file.path("modules/scfm/modules")), #if running scfm,
          inputPath = file.path(getwd(), "inputs"),
          outputPath = file.path(getwd(),"outputs"))
 
@@ -70,7 +76,7 @@ sppEquivalencies_CA[grep("Pin", LandR), `:=`(EN_generic_short = "Pine",
 
 # Make LandWeb spp equivalencies
 sppEquivalencies_CA[, RIA := c(Pice_mar = "Pice_mar", Pice_gla = "Pice_gla",
-                               Pinu_con = "Pinu_con", Popu_tre = "Popu_tre", 
+                               Pinu_con = "Pinu_con", Popu_tre = "Popu_tre",
                                Betu_pap = "Betu_pap", Pice_eng = "Pice_eng")[LandR]]
 sppEquivalencies_CA[LANDIS_traits == "ABIE.LAS"]$RIA <- "Abie_las"
 
@@ -102,20 +108,21 @@ sppColors
 sppEquivalencies_CA
 objectSynonyms <- list(c('vegMap', "LCC2005"))
 
-cloudFolderID <- "https://drive.google.com/open?id=1E9vlKqfj_TXjjVPORCSUpGP6FOKa_f6y"
+# cloudFolderID <- "https://drive.google.com/open?id=1E9vlKqfj_TXjjVPORCSUpGP6FOKa_f6y"
 
 objects <- list(
-  cloudFolderID = cloudFolderID,
+  # cloudFolderID = cloudFolderID,
   studyArea = studyArea,
   rasterToMatch = rasterToMatch,
   sppEquiv = sppEquivalencies_CA,
   sppColorVect = sppColors,
   studyAreaLarge = studyAreaLarge,
   studyAreaReporting = studyArea,
-  studyAreaPSP = studyAreaPSP, 
+  studyAreaPSP = studyAreaPSP,
   objecSynonyms = objectSynonyms
+  , fireRegimePolys = fireRegimePolys
   )
-#                 
+#
 
 opts <- options(
   "future.globals.maxSize" = 1000*1024^2,
@@ -136,6 +143,7 @@ opts <- options(
 
 # devtools::load_all("C:/Ian/Git/LandR")
 # devtools::load_all("C:/Ian/Git/LandR.CS")
+set.seed(1110)
 mySim <- simInit(times = times, params = parameters, modules = modules, objects = objects,
                  paths = paths, loadOrder = unlist(modules))
 
@@ -148,6 +156,6 @@ mySim <- simInit(times = times, params = parameters, modules = modules, objects 
 # mySim$speciesTable[LandisCode == "ABIE.LAS"]$Longevity <- 250
 
 dev.off()
-dev() 
+dev()
 mySimOut <- spades(mySim, debug = TRUE)
 
