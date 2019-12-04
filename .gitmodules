@@ -51,3 +51,6 @@
 	path = modules/Biomass_regeneration
 
 	url = https://github.com/PredictiveEcology/Biomass_regeneration.git
+[submodule "modules/LandR_reforestation"]
+	path = modules/LandR_reforestation
+	url = https://github.com/ianmseddy/LandR_reforestation
