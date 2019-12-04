@@ -57,3 +57,6 @@
 [submodule "modules/simpleHarvest"]
 	path = modules/simpleHarvest
 	url = https://github.com/ianmseddy/simpleHarvest.git
+[submodule "modules/historicalFireAndHarvest"]
+	path = modules/historicalFireAndHarvest
+	url = https://github.com/ianmseddy/historicalFireAndHarvest.git
