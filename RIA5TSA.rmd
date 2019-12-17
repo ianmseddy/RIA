@@ -1,0 +1,180 @@
+---
+title: "RIA5TSA"
+author: ""
+date: "30 October 2018"
+output: pdf_document
+---
+
+# Overview
+
+Provide an overview of what the module does / how to use the module.
+
+Module documentation should be written so that others can use your module.
+This is a template for module documentation, and should be changed to reflect your module.
+
+## R Markdown
+
+R Markdown syntax allows R code, outputs, and figures to be rendered in the documentation.
+
+For help writing in R Markdown, see http://rmarkdown.rstudio.com/.
+
+# Usage
+
+```{r module_usage}
+library(SpaDES)
+library(data.table)
+library(raster)
+library(LandR)
+
+googledrive::drive_auth(email = 'ianmseddy@gmail.com')
+
+setPaths(cachePath =  '/mnt/data/RIA/cache',
+         modulePath = c("modules/", 'modules/scfm/modules'), #if running scfm, 
+         inputPath = file.path("inputs"),
+         outputPath = file.path("outputs/LandRCS_no1") # shows where the 4 relevant paths are
+         )
+
+getPaths()
+times <- list(start = 2011, end = 2051) #run to 2101 eventually 
+
+parameters <- list(
+  Biomass_core = list(
+    .plotInitialTime = 2011
+    , seedingAlgorithm = "wardDispersal"
+    , .plotInterval = 10
+    , .useCache = "init"
+    , successionTimestep = 10
+    , initialBiomassSource = "cohortData"
+    , sppEquivCol = "RIA"
+    , growthAndMortalityDrivers = "LandR.CS"
+    , vegLeadingProportion = 0
+    , .saveInitialTime = 2021
+    , .saveInterval = 10
+    , plotOverstory = TRUE
+    , .plotMaps = FALSE
+    , .maxMemory = 10
+    , .useParallel = NA
+  ),
+  scfmSpread =  list(
+    .plotInitialTime = NA
+    , .plotInterval = 1
+  ),
+  scfmLandcoverInit = list(
+    .plotInitialTime = NA
+  )
+  , Biomass_regeneration = list(
+    fireInitialTime = times$start + 1,
+    fireTimestep = 1,
+    successionTimestep = 10
+  )
+  , gmcsDataPrep = list(
+    useHeight = TRUE,
+    GCM = "CCSM4_RCP8.5",
+    cacheClimateRas = FALSE
+    )
+  , LandR_speciesParameters = list(
+    sppEquivCol = 'RIA'
+    , useHeight = FALSE
+    , GAMMknots = list(
+      "Abie_las" = 3,
+      "Betu_pap" = 3,
+      "Pice_eng" = 4,
+      "Pice_gla" = 4, #4 achieves a flat instead of downard-sloping curve
+      "Pice_mar" = 4,
+      "Pinu_con" = 4, 
+      "Popu_tre" = 4
+    ),
+    quantileAgeSubset = list(
+      "Abie_las" = 95, #N = 250 '' 
+      "Betu_pap" = 95, #N = 96
+      "Pice_eng" = 95, #N = 130
+      "Pice_gla" = 95, #N = 1849
+      "Pice_mar" = 95, #N = 785
+      "Pinu_con" = 97, # N = 3172, 99 not an improvement. Maybe 97
+      "Popu_tre" = 98 # N = 1997, trying 99
+    )
+  )
+)
+
+modules <- list("PSP_Clean",  "gmcsDataPrep", "LandR_speciesParameters", "Biomass_core", "Biomass_regeneration", 
+               "scfmLandcoverInit", "scfmRegime", "scfmDriver", "scfmIgnition", "scfmEscape", "scfmSpread")
+
+objectSynonyms <- list(c('vegMap', "LCC2005"))
+
+rasterToMatch <- prepInputs(url = 'https://drive.google.com/open?id=1dl1iS3eXWcMcc7ASI8eIrKyn-x3OM_Cx',
+                            destinationPath = paths$inputPath)
+
+studyArea <- prepInputs(url = 'https://drive.google.com/open?id=18XPcOKeQdty102dYHizKH3ZPE187BiYi',
+                        destinationPath = paths$inputPath, 
+                        targetFile = "RIA_fiveTSA.shp",
+                        fun = 'shapefile',
+                        alsoExtract = 'similar')
+studyAreaPSP <- prepInputs(url = 'https://drive.google.com/open?id=10yhleaumhwa3hAv_8o7TE15lyesgkDV_',
+                           destinationPath = paths$inputPath,
+                           targetFile = 'ecodistrictsRIA.shp',
+                           fun = 'shapefile',
+                           alsoExtract = 'similar') #this is the overlap (not intersection) of ecoregions around RIA
+studyAreaLarge <- prepInputs(url = "https://drive.google.com/open?id=1FlC5YdjNF8wXLcA4hQxLvrRjVC6ShqND",
+                             destinationPath = paths$inputPath,
+                             fun = 'shapefile',
+                             alsoExtract = 'similar') #this is the whole RIA in BC. 
+#I don't know if SA large is used by any module other than Biomass_boreal and Biomass_speciesData
+
+
+source('generateSppEquiv.R')
+source('generateSpeciesLayersRIA5TSA.R') #this uses the larger study area 
+
+objects <- list(
+  # cloudFolderID = cloudFolderID,
+  studyArea = studyArea,
+  rasterToMatch = rasterToMatch,
+  sppEquiv = sppEquivalencies_CA,
+  sppColorVect = sppColors,
+  studyAreaLarge = studyAreaLarge,
+  studyAreaReporting = studyArea,
+  studyAreaPSP = studyAreaPSP,
+  objecSynonyms = objectSynonyms,
+  biomassMap = simOutSpp$biomassMap,
+  cohortData = simOutSpp$cohortData,
+  ecoDistrict = simOutSpp$ecodistrict,
+  ecoregion = simOutSpp$ecoregion,
+  ecoregionMap = simOutSpp$ecoregionMap,
+  pixelGroupMap = simOutSpp$pixelGroupMap,
+  minRelativeB = simOutSpp$minRelativeB,
+  species = simOutSpp$species,
+  speciesEcoregion = simOutSpp$speciesEcoregion,
+  sufficientLight = simOutSpp$sufficientLight,
+  rawBiomassMap = simOutSpp$rawBiomassMap,
+  speciesLayers = simOutSpp$speciesLayers
+)
+          
+opts <- options(
+  "LandR.assertions" = FALSE,
+  "reproducible.futurePlan" = FALSE,
+  "reproducible.inputPaths" = NULL,
+  "reproducible.quick" = FALSE,
+  "reproducible.overwrite" = TRUE,
+  "reproducible.useMemoise" = FALSE, # Brings cached stuff to memory during the second run
+  "reproducible.useNewDigestAlgorithm" = TRUE,  # use the new less strict hashing algo
+  "reproducible.useCache" = TRUE,
+  "reproducible.cachePath" = paths$cachePath,
+  "spades.moduleCodeChecks" = FALSE, # Turn off all module's code checking
+  "spades.useRequire" = FALSE # assuming all pkgs installed correctly
+)
+
+
+startTime <- Sys.time()
+data.table::setDTthreads(2) #
+set.seed(11111)
+mySim <- simInit(times = times, params = parameters, modules = modules, objects = objects,
+                 paths = paths, loadOrder = unlist(modules))
+mySimOut <- spades(mySim, debug = TRUE)
+```
+
+```{r explorig elevation}
+
+
+
+```
+
+
