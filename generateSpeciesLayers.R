@@ -1,3 +1,6 @@
+library(SpaDES)
+library(raster)
+library(magrittr)
 ## -----------------------------------
 ## LOAD/MAKE SPECIES LAYERS
 ## -----------------------------------
@@ -8,21 +11,27 @@
 ## be run once (even if other things change, like the simulation rep,
 ## or other modules). That's why caching is kept separate from the rest
 ## of the simulation
-googledrive::drive_auth(email = "ianmseddy@gmail.com")
-speciesPaths <-list(cachePath = file.path("/mnt/data/RIA/speciesCache"), #cache separately
+
+speciesPaths <-list(cachePath = "speciesCache",
                     modulePath = file.path("modules"),
                     inputPath = file.path("inputs"),
                     outputPath = file.path("outputs"))
 
 #get objects
-studyArea <- shapefile("inputs/RIA_fiveTSA.shp")
-rasterToMatch <- raster("inputs/RIA5tsaRTM.tif")
-#studyAreaLarge IS studyArea
+studyArea <- shapefile("inputs/ftStJohn_studyArea.shp")
+
+rasterToMatch <- raster("inputs/ftStJohn_RTM.tif")
+studyAreaLarge <- shapefile("inputs/RIA_fiveTSA.shp") %>%
+  spTransform(., crs(rasterToMatch))
 
 #get sppEquivalencies
 source('generateSppEquiv.R')
 
 #Create function for updating sub-alpine fir longevity
+firAgeUpdate <- function(sT) {
+  sT[species == "Abie_las", longevity := 300]
+  return(sT)
+}
 
 speciesParameters <- list(
   Biomass_speciesData = list(
@@ -31,6 +40,7 @@ speciesParameters <- list(
   )
   , Biomass_borealDataPrep = list(
     successionTimestep = 10
+    , subsetDataBiomassModel = 50
     , pixelGroupAgeClass = 10
     , sppEquivCol = 'RIA'
     , speciesUpdateFunction = list(
@@ -40,36 +50,21 @@ speciesParameters <- list(
   )
 )
 
-#MAKE SURE MEMOISE IS FALSE
-opts <- options(
-  "LandR.assertions" = FALSE,
-  "reproducible.futurePlan" = FALSE,
-  "reproducible.inputPaths" = NULL,
-  "reproducible.quick" = FALSE,
-  "reproducible.overwrite" = TRUE,
-  "reproducible.useMemoise" = FALSE, # Brings cached stuff to memory during the second run
-  "reproducible.useNewDigestAlgorithm" = TRUE,  # use the new less strict hashing algo
-  "reproducible.useCache" = TRUE,
-  "reproducible.cachePath" = paths$cachePath,
-  "spades.moduleCodeChecks" = FALSE, # Turn off all module's code checking
-  "spades.useRequire" = FALSE # assuming all pkgs installed correctly
-)
-
 speciesObjects <- list(
   "sppEquiv" = sppEquivalencies_CA
   , "sppColorVect" = sppColors
+  , "studyAreaLarge" = studyAreaLarge
   , 'studyArea' = studyArea
   , 'rasterToMatch' = rasterToMatch
-  , 'studyAreaLarge' = studyArea
 )
-speciesModules = c("Biomass_speciesData", 'Biomass_borealDataPrep')
 
 simOutSpp <- Cache(simInitAndSpades
-                   , times = list(start = 0, end = 1)
+                   , times = list(start = times$start, end = times$start + 1)
                    , params = speciesParameters
-                   , modules = speciesModules
+                   , modules = c("Biomass_speciesData", 'Biomass_borealDataPrep')
                    , objects = speciesObjects
                    , paths = speciesPaths
                    , debug = TRUE
-                   , .plotInitialTime = NA
-                   , loadOrder = unlist(speciesModules))
+                   , .plotInitialTime = NA,
+                   userTags = "simOutSpp",
+                   cachePath = speciesPaths$cachePath)

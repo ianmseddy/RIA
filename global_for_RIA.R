@@ -6,10 +6,10 @@ library(data.table)
 googledrive::drive_auth(email = "ianmseddy@gmail.com")
 spadesModulesDirectory <- file.path("modules") # where modules are
 modules <- list("Biomass_speciesData", "Biomass_borealDataPrep", "Biomass_core", "Biomass_regeneration", "PSP_Clean",
-                "gmcsDataPrep", "scfmLandcoverInit", "scfmRegime", "scfmDriver", "scfmIgnition", "scfmEscape", "scfmSpread")
+                "gmcsDataPrep")#, "scfmLandcoverInit", "scfmRegime", "scfmDriver", "scfmIgnition", "scfmEscape", "scfmSpread")
 
 
-times <- list(start = 2011, end = 2100)
+times <- list(start = 2011, end = 2021)
 
 #Change the TSA to either Ft St John or Ft Nelson
 studyArea <- shapefile("inputs/ftStJohn_studyArea.shp")
@@ -31,11 +31,12 @@ parameters <- list(
   Biomass_core = list(
     .plotInitialTime = 2011
     , seedingAlgorithm = "wardDispersal"
-    , .plotInterval = 10
+    , .plotInterval = 5
     , .useCache = "init"
     , successionTimestep = 10
     , initialBiomassSource = "cohortData"
     , sppEquivCol = "RIA"
+    , plotOverstory = TRUE
     , growthAndMortalityDrivers = "LandR.CS"
     , vegLeadingProportion = 0
     , .saveInitialTime = 2021),
@@ -56,7 +57,8 @@ parameters <- list(
     fireTimestep = 1,
     successionTimestep = 10),#,
   gmcsDataPrep = list(
-    useHeight = TRUE)
+    useHeight = TRUE,
+    GCM = 'CCSM4_RCP8.5')
 )
 
 ## Paths are not workign with multiple module paths yet
@@ -112,14 +114,14 @@ objectSynonyms <- list(c('vegMap', "LCC2005"))
 
 objects <- list(
   # cloudFolderID = cloudFolderID,
-  studyArea = studyArea,
-  rasterToMatch = rasterToMatch,
-  sppEquiv = sppEquivalencies_CA,
-  sppColorVect = sppColors,
-  studyAreaLarge = studyAreaLarge,
-  studyAreaReporting = studyArea,
-  studyAreaPSP = studyAreaPSP,
-  objecSynonyms = objectSynonyms
+  studyArea = studyArea
+  , rasterToMatch = rasterToMatch
+  , sppEquiv = sppEquivalencies_CA
+  , sppColorVect = sppColors
+  , studyAreaLarge = studyAreaLarge
+  , studyAreaReporting = studyArea
+  , studyAreaPSP = studyAreaPSP
+  , objecSynonyms = objectSynonyms
   , fireRegimePolys = fireRegimePolys
   )
 #
@@ -136,6 +138,7 @@ opts <- options(
   "reproducible.useNewDigestAlgorithm" = TRUE,  # use the new less strict hashing algo
   "reproducible.useCache" = TRUE,
   "reproducible.cachePath" = paths$cachePath,
+  "reproducible.showSimilar" = TRUE, #Always keep this on or scfm will miss cached driver params
   "reproducible.useCloud" = FALSE,
   "spades.moduleCodeChecks" = FALSE, # Turn off all module's code checking
   "spades.useRequire" = FALSE # assuming all pkgs installed correctly
