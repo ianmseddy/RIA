@@ -12,17 +12,18 @@ library(magrittr)
 ## or other modules). That's why caching is kept separate from the rest
 ## of the simulation
 
-speciesPaths <-list(cachePath = "speciesCache",
+speciesPaths <-list(cachePath = tempdir(),#"speciesCache",
                     modulePath = file.path("modules"),
                     inputPath = file.path("inputs"),
                     outputPath = file.path("outputs"))
 
 #get objects
-studyArea <- shapefile("inputs/ftStJohn_studyArea.shp")
-
-rasterToMatch <- raster("inputs/ftStJohn_RTM.tif")
-studyAreaLarge <- shapefile("inputs/RIA_fiveTSA.shp") %>%
-  spTransform(., crs(rasterToMatch))
+#This should use whatever is loaded in R instead of replacing it
+# studyArea <- shapefile("inputs/ftStJohn_studyArea.shp")
+#
+# rasterToMatch <- raster("inputs/ftStJohn_RTM.tif")
+# studyAreaLarge <- shapefile("inputs/RIA_fiveTSA.shp") %>%
+#   spTransform(., crs(rasterToMatch))
 
 #get sppEquivalencies
 source('generateSppEquiv.R')
@@ -56,15 +57,18 @@ speciesObjects <- list(
   , "studyAreaLarge" = studyAreaLarge
   , 'studyArea' = studyArea
   , 'rasterToMatch' = rasterToMatch
+  , 'rasterToMatchLarge' = rasterToMatchLarge
 )
+speciesModules <- c("Biomass_speciesData", 'Biomass_borealDataPrep')
 
 simOutSpp <- Cache(simInitAndSpades
                    , times = list(start = times$start, end = times$start + 1)
                    , params = speciesParameters
-                   , modules = c("Biomass_speciesData", 'Biomass_borealDataPrep')
+                   , modules = speciesModules
                    , objects = speciesObjects
                    , paths = speciesPaths
                    , debug = TRUE
-                   , .plotInitialTime = NA,
-                   userTags = "simOutSpp",
-                   cachePath = speciesPaths$cachePath)
+                   , .plotInitialTime = NA
+                   , loadOrder = unlist(speciesModules)
+                   , userTags = "simOutSpp",
+                   cacheRepo = speciesPaths$cachePath)

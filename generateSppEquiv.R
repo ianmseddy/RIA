@@ -23,6 +23,7 @@ sppEquivalencies_CA[RIA == "Pice_eng", EN_generic_full := 'Engelmann Spruce']
 sppEquivalencies_CA[RIA == 'Pice_eng', EN_generic_short  := "En Spruce"]
 
 sppEquivalencies_CA <- sppEquivalencies_CA[!is.na(RIA)]
+sppEquivalencies_CA[RIA == "Pinu_con", KNN := "Pinu_Con"]
 
 #Assign colour
 sppColors <- RColorBrewer::brewer.pal(name = 'Paired', n = length(unique(sppEquivalencies_CA$RIA)) + 1)
