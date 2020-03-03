@@ -9,9 +9,7 @@ rasterToMatchLarge <- raster("C:/ian/Campbell/RIA/RIA/inputs/RIA5tsaRTM.tif")
 BEC2020 <- raster(x = "C:/Ian/data/BC/FlyingBECs/ConsesusBEC/mx_2020/w001001.adf")
 BEC2050 <- raster("C:/Ian/data/BC/FlyingBECs/ConsesusBEC/mx_2050/w001001.adf")
 BEC2080 <- raster("C:/Ian/data/BC/FlyingBECs/ConsesusBEC/mx20g_2080/dblbnd.adf")
-BECref <- raster("C:/Ian/Data/BC/FlyingBECs/BEC2001_2009/p2019/w001001.adf")
-
-
+BECref <- raster("C:/Ian/Data/BC/FlyingBECs/ReferenceBEC/BEC_zone.tif")
 
 #Fix the classification scheme, add year to distinguish between different ID fields
 dt2020 <- as.data.table(BEC2020@data@attributes) %>%
@@ -86,7 +84,7 @@ rasref <- dtrefj[rasref, on = c(ID = 'ID')]
 BECrefr <- setValues(BECref, rasref$newCode)
 dtrefj[, c('year', 'ID') := NULL]
 setnames(dtrefj, old = c('newKey', 'newCode'), new = c('VAR', 'ID'))
-setcolorder(dtrefj, c("ID", "COUNT", "VAR", "P2019", 'ZONE'))
+setcolorder(dtrefj, c("ID", "COUNT", "VAR", "SUBZ", 'ZONE'))
 setkey(dtrefj, ID)
 BECrefr@data@attributes[[1]] <- dtrefj
 writeRaster(BECrefr, "C:/Ian/Data/BC/FlyingBECs/reclassifiedBECref.grd", overwrite = TRUE)
