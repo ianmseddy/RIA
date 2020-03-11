@@ -60,3 +60,12 @@
 [submodule "modules/historicalFireAndHarvest"]
 	path = modules/historicalFireAndHarvest
 	url = https://github.com/ianmseddy/historicalFireAndHarvest.git
+[submodule "modules/assistedMigrationBC"]
+	path = modules/assistedMigrationBC
+	url = https://github.com/ianmseddy/assistedMigrationBC.git
+[submodule "modules/caribouRSF"]
+	path = modules/caribouRSF
+	url = https://github.com/tati-micheletti/caribouRSF.git
+[submodule "modules/caribouPopGrowthModel"]
+	path = modules/caribouPopGrowthModel
+	url = https://github.com/tati-micheletti/caribouPopGrowthModel.git
