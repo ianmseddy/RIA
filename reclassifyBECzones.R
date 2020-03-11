@@ -78,6 +78,10 @@ BEC2080r@data@attributes[[1]] <- dt2080j
 writeRaster(BEC2080r, "C:/Ian/Data/BC/FlyingBECs/reclassifiedBEC2080.grd", overwrite = TRUE)
 
 #ref
+
+#There is one extra row in the BEC ref data
+BECref <- postProcess(BECref, rasterToMatch = BEC2080r)
+
 dtrefj <- newKey[dtref, on = c(newKey = 'VAR')]
 rasref <- data.table(ID = getValues(BECref))
 rasref <- dtrefj[rasref, on = c(ID = 'ID')]
@@ -88,6 +92,8 @@ setcolorder(dtrefj, c("ID", "COUNT", "VAR", "SUBZ", 'ZONE'))
 setkey(dtrefj, ID)
 BECrefr@data@attributes[[1]] <- dtrefj
 writeRaster(BECrefr, "C:/Ian/Data/BC/FlyingBECs/reclassifiedBECref.grd", overwrite = TRUE)
+BECstack <- stack(BECrefr, BEC2020r, BEC2050r, BEC2080r)
+writeRaster(BECstack, filename = "C:/Ian/Data/BC/FlyingBECs/projectedBECzones.grd")
 
 #Crop to the RIA
 riaRef <- postProcess(x = BECrefr, rasterToMatch = rasterToMatchLarge)

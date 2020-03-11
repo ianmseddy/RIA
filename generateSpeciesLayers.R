@@ -58,7 +58,9 @@ speciesObjects <- list(
   , 'studyArea' = studyArea
   , 'rasterToMatch' = rasterToMatch
   , 'rasterToMatchLarge' = rasterToMatchLarge
+  , 'ecoregionRst' = ecoregionRst
 )
+
 speciesModules <- c("Biomass_speciesData", 'Biomass_borealDataPrep')
 
 simOutSpp <- Cache(simInitAndSpades
