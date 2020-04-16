@@ -1,0 +1,4 @@
+[submodule "modules/gmcsDataPrep"]
+	branch = development
+[submodule "modules/LandR_reforestation"]
+	branch = master
