@@ -47,7 +47,40 @@ speciesParameters <- list(
     , speciesUpdateFunction = list(
       quote(LandR::speciesTableUpdate(sim$species, sim$speciesTable, sim$sppEquiv, P(sim)$sppEquivCol)),
       quote(firAgeUpdate(sT = sim$species))
+    ),
+    gmcsDataPrep = list(
+    GCM = 'CCSM4_RCP4.5'
+    , useHeight = TRUE),
+   LandR_speciesParameters = list(
+    sppEquivCol = 'RIA'
+    , useHeight = FALSE
+    , GAMMknots = list(
+      "Abie_las" = 3,
+      "Betu_pap" = 3,
+      "Pice_eng" = 4,
+      "Pice_gla" = 3,
+      "Pice_mar" = 4,
+      "Pinu_con" = 4,
+      "Popu_tre" = 4
     )
+    , constrainGrowthCurve = list(
+      "Abie_las" = c(0.3, .7),
+      "Betu_pap" = c(0.3, .7),
+      "Pice_eng" = c(0.3, .7),
+      "Pice_gla" = c(0.3, .7),
+      "Pice_mar" = c(0.3, .7),
+      "Pinu_con" = c(0.3, .7),
+      "Popu_tre" = c(0.3, .7)
+    )
+    , quantileAgeSubset = list(
+      "Abie_las" = 95, #N = 250 ''
+      "Betu_pap" = 95, #N = 96
+      "Pice_eng" = 95, #N = 130
+      "Pice_gla" = 95, #N = 1849
+      "Pice_mar" = 95, #N = 785
+      "Pinu_con" = 97, # N = 3172, 99 not an improvement. Maybe 97
+      "Popu_tre" = 98 # N = 1997, trying 99
+    ))
   )
 )
 
@@ -61,7 +94,7 @@ speciesObjects <- list(
   , 'ecoregionRst' = ecoregionRst
 )
 
-speciesModules <- c("Biomass_speciesData", 'Biomass_borealDataPrep')
+speciesModules <- c('PSP_Clean', "Biomass_speciesData", 'Biomass_borealDataPrep', 'LandR_speciesParameters')
 
 simOutSpp <- Cache(simInitAndSpades
                    , times = list(start = times$start, end = times$start + 1)

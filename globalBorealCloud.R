@@ -2,7 +2,7 @@ library(SpaDES)
 library(raster)
 library(LandR)
 
-spadesModulesDirectory <- file.path("modules") # where modules are 
+spadesModulesDirectory <- file.path("modules") # where modules are
 modules <- list("Boreal_LBMRDataPrep", "LBMR", "Biomass_Regeneration", "PSP_Clean", "gmcsDataPrep",
                 "scfmLandcoverInit", "scfmRegime", "scfmDriver", "scfmIgnition", "scfmEscape", "scfmSpread")
 times <- list(start = 2011, end = 2100)
@@ -10,11 +10,11 @@ times <- list(start = 2011, end = 2100)
 
 studyArea <- prepInputs(url = 'https://drive.google.com/open?id=1TlBfGfes_6UQW4M3jib8zgY5sGd_yjmY',
                         destinationPath = file.path(getwd(), "inputs"))
-# rasterToMatch <- Cache(prepInputsLCC, 
-#                        destinationPath = file.path(getwd(), "inputs"), 
-#                        studyArea = studyArea, 
+# rasterToMatch <- Cache(prepInputsLCC,
+#                        destinationPath = file.path(getwd(), "inputs"),
+#                        studyArea = studyArea,
 #                        filename2 = "RIArtm.tif")
-studyAreaLarge <- prepInputs(url = 'https://drive.google.com/open?id=1vsgb1Bg8B_vUe-rk7LplkUifCkyPWtf3', 
+studyAreaLarge <- prepInputs(url = 'https://drive.google.com/open?id=1vsgb1Bg8B_vUe-rk7LplkUifCkyPWtf3',
                              destinationPath = file.path(getwd(), "inputs"))
 studyAreaPSP <- studyAreaLarge
 
@@ -26,7 +26,7 @@ parameters <- list(
               initialBiomassSource = "cohortData",
               sppEquivCol = "RIA",
               growthAndMortalityDrivers = "LandR.CS",
-              vegLeadingProportion = 0), 
+              vegLeadingProportion = 0),
   Boreal_LBMRDataPrep = list(
     successionTimestep = 10,
     pixelGroupAgeClass = 10,
@@ -41,7 +41,7 @@ parameters <- list(
   Biomass_regeneration = list(
     fireInitialTime = times$start + 1,
     fireTimeStep = 1,
-    successionTimeStep = 10),#,
+    successionTimeStep = 10),
   gmcsDataPrep = list(
     useHeight = TRUE)
 )
@@ -61,8 +61,8 @@ sppEquivalencies_CA[grep("Pin", LandR), `:=`(EN_generic_short = "Pine",
 
 # Make LandWeb spp equivalencies
 sppEquivalencies_CA[, RIA := c(Pice_mar = "Pice_mar", Pice_gla = "Pice_gla",
-                               Pinu_con = "Pinu_con", Popu_tre = "Popu_tre", 
-                               #Betu_pap = "Betu_pap", 
+                               Pinu_con = "Pinu_con", Popu_tre = "Popu_tre",
+                               #Betu_pap = "Betu_pap",
                                Pice_eng = "Pice_eng")[LandR]]
 sppEquivalencies_CA[LANDIS_traits == "ABIE.LAS"]$RIA <- "Abie_las"
 
@@ -93,10 +93,10 @@ objects <- list(
   sppColorVect = sppColors,
   studyAreaLarge = studyAreaLarge,
   studyAreaReporting = studyArea,
-  studyAreaPSP = studyAreaPSP, 
+  studyAreaPSP = studyAreaPSP,
   objecSynonyms = objectSynonyms
 )
-#                 
+#
 
 opts <- options(
   "future.globals.maxSize" = 1000*1024^2,
@@ -124,6 +124,6 @@ mySim$speciesTable[LandisCode == "PINU.CON.LAT"]$Longevity <- 335
 mySim$speciesTable[LandisCode == "PICE.MAR"]$Longevity <- 250
 mySim$speciesTable[LandisCode == "POPU.TRE"]$Longevity <- 200
 mySim$speciesTable[LandisCode == "ABIE.LAS"]$Longevity <- 250
- 
+
 mySimOut <- spades(mySim, debug = TRUE)
 

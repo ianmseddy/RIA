@@ -1,3 +1,7 @@
+library(data.table)
+library(magrittr)
+library(SpaDES)
+
 data("sppEquivalencies_CA", package = "LandR")
 sppEquivalencies_CA[grep("Pin", LandR), `:=`(EN_generic_short = "Pine",
                                              EN_generic_full = "Pine",
