@@ -39,11 +39,11 @@
 	url = https://github.com/PredictiveEcology/scfm.git
 
 
-[submodule "modules/LandR_speciesParameters"]
+[submodule "modules/Biomass_speciesParameters"]
 
-	path = modules/LandR_speciesParameters
+	path = modules/Biomass_speciesParameters
 
-	url = https://github.com/ianmseddy/LandR_speciesParameters.git
+	url = https://github.com/PredictiveEcology/Biomass_speciesParameters.git
 
 
 [submodule "modules/Biomass_regeneration"]
@@ -57,6 +57,7 @@
 [submodule "modules/simpleHarvest"]
 	path = modules/simpleHarvest
 	url = https://github.com/ianmseddy/simpleHarvest.git
+	branch = master
 [submodule "modules/historicalFireAndHarvest"]
 	path = modules/historicalFireAndHarvest
 	url = https://github.com/ianmseddy/historicalFireAndHarvest.git
