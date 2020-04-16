@@ -13,13 +13,10 @@ vignettes/*.pdf
 outputs/
 *.rda
 *.db
-GADM_2\.8_CAN_adm1\.rds
-.Rproj.user
-modules/LBMR_1\.3\.0\.9001\.zip
-*.tif
-C:/Ian/Campbell/Cariboo_RIA/Land-R/modules/../.httr-oauth
 
-NFI_MAP_V0_metadata\.xls
+.Rproj.user
+*.tif
+
 *inputs/
 cache/
 global_reforestation.R
