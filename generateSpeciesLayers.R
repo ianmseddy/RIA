@@ -12,7 +12,7 @@ library(magrittr)
 ## or other modules). That's why caching is kept separate from the rest
 ## of the simulation
 
-speciesPaths <-list(cachePath = tempdir(),#"speciesCache",
+speciesPaths <-list(cachePath = "speciesCache",
                     modulePath = file.path("modules"),
                     inputPath = file.path("inputs"),
                     outputPath = file.path("outputs"))
@@ -50,7 +50,7 @@ speciesParameters <- list(
     ),
     gmcsDataPrep = list(
     GCM = 'CCSM4_RCP4.5'
-    , useHeight = TRUE),
+    , useHeight = TRUE)),
    LandR_speciesParameters = list(
     sppEquivCol = 'RIA'
     , useHeight = FALSE
@@ -80,8 +80,7 @@ speciesParameters <- list(
       "Pice_mar" = 95, #N = 785
       "Pinu_con" = 97, # N = 3172, 99 not an improvement. Maybe 97
       "Popu_tre" = 98 # N = 1997, trying 99
-    ))
-  )
+      ))
 )
 
 speciesObjects <- list(
