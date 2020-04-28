@@ -51,7 +51,7 @@ speciesParameters <- list(
     gmcsDataPrep = list(
     GCM = 'CCSM4_RCP4.5'
     , useHeight = TRUE)),
-   LandR_speciesParameters = list(
+   Biomass_speciesParameters = list(
     sppEquivCol = 'RIA'
     , useHeight = FALSE
     , GAMMknots = list(
@@ -93,9 +93,9 @@ speciesObjects <- list(
   , 'ecoregionRst' = ecoregionRst
 )
 
-speciesModules <- c('PSP_Clean', "Biomass_speciesData", 'Biomass_borealDataPrep', 'LandR_speciesParameters')
+speciesModules <- c('PSP_Clean', "Biomass_speciesData", 'Biomass_borealDataPrep', 'Biomass_speciesParameters')
 
-simOutSpp <- Cache(simInitAndSpades
+simOutSpp <- Cache(SpaDES.core::simInitAndSpades
                    , times = list(start = times$start, end = times$start + 1)
                    , params = speciesParameters
                    , modules = speciesModules
