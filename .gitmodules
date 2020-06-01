@@ -61,3 +61,8 @@
 [submodule "modules/spades_ws3_dataInit"]
 	path = modules/spades_ws3_dataInit
 	url = https://github.com/gparadis/spades_ws3_dataInit.git
+[submodules "modules/Biomass_borealDataPrep"]
+	update = merge
+[submodule "modules/spades_ws3_landrAge"]
+	path = modules/spades_ws3_landrAge
+	url = https://github.com/ianmseddy/spades_ws3_landrAge.git

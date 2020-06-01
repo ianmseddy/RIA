@@ -1,9 +1,16 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
 library(reticulate)
 #use_python("/usr/bin/python3")
 #library(raster)
 library(SpaDES)
-basenames = c('tsa40','tsa41') #for multiple tsas
-basename <- c("tsa40") # for testing single tsa
+basenames = c('tsa40','tsa41')
+basename <- list(c("tsa40"))
 setPaths(modulePath = 'modules',
          inputPath = 'inputs',
          outputPath = 'outputs',
@@ -12,26 +19,30 @@ paths <- getPaths()
 modules <- list('spades_ws3_dataInit', 'spades_ws3')
 base.year <- 2015
 
-times <- list(start = 0, end = 5)
+horizon <- 1
+times <- list(start = 0, end = horizon - 1)
+
 
 objects <-  list()
-options("spades.moduleCodeChecks" = FALSE)
 params <- list(spades_ws3_dataInit = list(basenames = basename,
                                           tifPath = 'tif',
                                           hdtPath = 'hdt',
                                           hdtPrefix = 'hdt_',
-                                          base.year = 2015,
                                           .saveInitialTime = 0,
                                           .saveInterval = 1,
                                           .saveObjects = c("landscape"),
                                           .savePath = file.path(paths$outputPath, "landscape")),
                spades_ws3 = list(basenames = basename,
                                  tifPath = 'tif',
-                                 base.year = 2015,
+                                 hdtPath = 'hdt',
                                  scheduler.mode = 'areacontrol',
                                  horizon = 1))
+```
 
+```{r}
 sim <- simInit(paths=paths, modules = modules, times=times, params= params, objects = objects)
 simOut <- spades(sim, debug=TRUE)
+
+```
 
 

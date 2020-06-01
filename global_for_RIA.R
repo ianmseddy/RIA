@@ -1,130 +1,154 @@
+library(reticulate)
 library(SpaDES)
 library(raster)
-library(LandR)
 library(sf)
+library(LandR)
 library(data.table)
+
 googledrive::drive_auth(email = "ianmseddy@gmail.com")
-spadesModulesDirectory <- file.path("modules") # where modules are
-modules <- list("Biomass_speciesData", "Biomass_borealDataPrep", "Biomass_core", "Biomass_regeneration", "PSP_Clean",
-                "gmcsDataPrep")#, "scfmLandcoverInit", "scfmRegime", "scfmDriver", "scfmIgnition", "scfmEscape", "scfmSpread")
 
+basenames <- c("tsa40") #THis must absolutely match whatever studyArea you are going to use for harvest
+source("generateHarvestInit.R")
 
-times <- list(start = 2011, end = 2021)
+rasterToMatch <- harvestFiles$landscape$age
 
 #Change the TSA to either Ft St John or Ft Nelson
-studyArea <- shapefile("inputs/ftStJohn_studyArea.shp")
-studyAreaLarge <- shapefile("inputs/RIA_fiveTSA.shp")
-fireRegimePolys <- shapefile("inputs/RIA_fireRegimePolys_ED.shp")
-rasterToMatch <- Cache(prepInputsLCC, destinationPath = tempdir(), studyArea = studyArea, filename2 = "RIA_testArea", overwrite = TRUE)
-studyArea <- spTransform(x = studyArea, CRSobj = crs(rasterToMatch))
-studyAreaLarge <- spTransform(x = studyAreaLarge, CRSobj = crs(rasterToMatch))
-fireRegimePolys <- spTransform(fireRegimePolys, crs(studyAreaLarge))
-# writeOGR(studyArea, dsn = "C:/Ian/Campbell/RIA/Land-R/inputs", layer = "ftStJohn_studyArea", driver = "ESRI Shapefile")
-# writeOGR(studyAreaLarge, dsn = "C:/Ian/Campbell/RIA/Land-R/inputs", layer = "RIA_studyAreaLarge", driver = "ESRI Shapefile")
+studyArea <- prepInputs(url = 'https://drive.google.com/open?id=16dHisi-dM3ryJTazFHSQlqljVc0McThk',
+                        destinationPath = 'inputs',
+                        overwrite = TRUE,
+                        useCache = TRUE,
+                        rasterToMatch = rasterToMatch)
+#
+# studyAreaLarge <- prepInputs(url = 'https://drive.google.com/open?id=18XPcOKeQdty102dYHizKH3ZPE187BiYi',
+#                              destinationPath = 'inputs',
+#                              overwrite = TRUE) %>%
+#   spTransform(., CRSobj = crs(studyArea))
+studyAreaLarge <- studyArea
+# rasterToMatchLarge <- prepInputsLCC(studyArea = studyAreaLarge,
+#                       destinationPath = 'inputs',
+#                       useCache = TRUE,
+#                       overwrite = TRUE,
+#                       useSAcrs = TRUE,
+#                       res = c(250, 250))
+rasterToMatchLarge <- rasterToMatch
 
-studyAreaPSP <- studyAreaLarge
+#For climate scenarios
+studyAreaPSP <- prepInputs(url = 'https://drive.google.com/open?id=10yhleaumhwa3hAv_8o7TE15lyesgkDV_',
+                          destinationPath = 'inputs',
+                          overwrite = TRUE,
+                          useCache = TRUE) %>%
+  spTransform(., CRSobj = crs(studyArea))
+
+ecoregionRst <- prepInputs(url = 'https://drive.google.com/open?id=1SJf9zQqBcznw5uByfRZ5ulk2ktfHia26',
+                          destinationPath = 'inputs',
+                          targetFile = 'reclassifiedBECs.grd',
+                          alsoExtract = 'reclassifiedBECs.gri',
+                          fun = 'raster::stack',
+                          rasterToMatch = rasterToMatchLarge,
+                          overwrite = TRUE,
+                          useCache = TRUE)
+ecoregionRst <- ecoregionRst$BECref
+standAgeMap <- harvestFiles$landscape$age
+
+times <- list(start = 2011, end = 2025)
+source('generateSppEquiv.R')
+source('generateSpeciesLayers.R')
+
+spadesModulesDirectory <- file.path("modules") # where modules are
+modules <- list('spades_ws3_dataInit', 'spades_ws3','spades_ws3_landrAge',
+                "PSP_Clean", 'gmcsDataPrep', 'Biomass_core',
+                 'LandR_reforestation', 'assistedMigrationBC')
+#, "scfmLandcoverInit", "scfmRegime", "scfmDriver", "scfmIgnition", "scfmEscape", "scfmSpread")
+times <- list(start = 2015, end = 2035)
+
 
 parameters <- list(
   Biomass_speciesData = list(
     sppEquivCol = "RIA",
     type = c("KNN", "CASFRI")),
   Biomass_core = list(
-    .plotInitialTime = 2011
-    , seedingAlgorithm = "wardDispersal"
-    , .plotInterval = 5
-    , .useCache = "init"
+    .plotInitialTime = NA
+    , .plotInterval = NA
     , successionTimestep = 10
     , initialBiomassSource = "cohortData"
     , sppEquivCol = "RIA"
     , plotOverstory = TRUE
     , growthAndMortalityDrivers = "LandR.CS"
     , vegLeadingProportion = 0
-    , .saveInitialTime = 2021),
-  Biomass_borealDataPrep = list(
-    successionTimestep = 10
-    , pixelGroupAgeClass = 10
-    , sppEquivCol = 'RIA'
-    , subsetDataBiomassModel = 20),
-  scfmSpread = list(
-    .plotInitialTime = NA
-    , .plotInterval = 1),
-  scfmLandcoverInit = list(
-    .plotInitialTime = NA),
-  scfmDriver = list(
-    .useParallel = TRUE),
-  Biomass_regeneration = list(
-    fireInitialTime = times$start + 1,
-    fireTimestep = 1,
-    successionTimestep = 10),#,
+    , .saveInitialTime = times$start + 10),
+  # Biomass_regeneration = list(
+  #   fireInitialTime = times$start + 1,
+  #   fireTimestep = 1,
+  #   successionTimestep = 10),
+  assistedMigrationBC = list(
+    sppEquivCol = 'RIA'),
   gmcsDataPrep = list(
     useHeight = TRUE,
-    GCM = 'CCSM4_RCP8.5')
+    GCM = 'CCSM4_RCP4.5'),
+  spades_ws3 = list(
+    basenames = basenames,
+    tifPath = 'tif',
+    base.year = 2015,
+    scheduler.mode = 'areacontrol',
+    horizon = 1),
+  spades_ws3_dataInit = list(
+    basenames = basenames,
+    tifPath = 'tif',
+    base.year = 2015,
+    hdtPath = 'hdt',
+    hdtPrefix = 'hdt_',
+    target.masks <- as.list(paste(basenames, "1 ? ?")), # TSA-wise THLB
+    target.scalefactors <- as.list(rep(0.80, length(basenames)))),
+  spades_ws3_landrAge = list(
+    basenames = basenames,
+    tifPath = 'tif',
+    base.year = 2015
+  )
 )
 
 ## Paths are not workign with multiple module paths yet
 setPaths(cachePath =  file.path(getwd(), "cache"),
-         modulePath = c(file.path(getwd(), "modules"), file.path("modules/scfm/modules")), #if running scfm,
+         modulePath = c(file.path(getwd(), "modules"), file.path("modules/scfm/modules")),
          inputPath = file.path(getwd(), "inputs"),
          outputPath = file.path(getwd(),"outputs"))
 
 paths <- SpaDES.core::getPaths()
-options("spades.moduleCodeChecks" = FALSE)
-
-#Tree species that are important to us
-data("sppEquivalencies_CA", package = "LandR")
-sppEquivalencies_CA[grep("Pin", LandR), `:=`(EN_generic_short = "Pine",
-                                             EN_generic_full = "Pine",
-                                             Leading = "Pine leading")]
-
-# Make LandWeb spp equivalencies
-sppEquivalencies_CA[, RIA := c(Pice_mar = "Pice_mar", Pice_gla = "Pice_gla",
-                               Pinu_con = "Pinu_con", Popu_tre = "Popu_tre",
-                               Betu_pap = "Betu_pap", Pice_eng = "Pice_eng")[LandR]]
-sppEquivalencies_CA[LANDIS_traits == "ABIE.LAS"]$RIA <- "Abie_las"
-
-sppEquivalencies_CA <- sppEquivalencies_CA[!LANDIS_traits == "PINU.CON.CON"]
-
-sppEquivalencies_CA[RIA == "Abie_las", EN_generic_full := "Subalpine Fir"]
-sppEquivalencies_CA[RIA == "Abie_las", EN_generic_short := "Fir"]
-sppEquivalencies_CA[RIA == "Abie_las", Leading := "Fir leading"]
-sppEquivalencies_CA[RIA == "Popu_tre", Leading := "Pop leading"]
-sppEquivalencies_CA[RIA == "Betu_pap", EN_generic_short := "Birch"]
-sppEquivalencies_CA[RIA == "Betu_pap",  Leading := "Betula leading"]
-sppEquivalencies_CA[RIA == "Betu_pap",  EN_generic_full := "Paper birch"]
-sppEquivalencies_CA[RIA == "Pice_eng", EN_generic_full := 'Engelmann Spruce']
-sppEquivalencies_CA[RIA == 'Pice_eng', EN_generic_short  := "En Spruce"]
-sppEquivalencies_CA[RIA == "Popu_tre", EN_generic_short := "Aspen"]
-sppEquivalencies_CA <- sppEquivalencies_CA[!is.na(RIA)]
-
-#Assign colour
-sppColors <- RColorBrewer::brewer.pal(name = 'Paired', n = length(unique(sppEquivalencies_CA$RIA)) + 1)
-#Test colours
-# clearPlot()
-plot(x = 1:7, y = 2:8, col = sppColors, pch = 20, cex = 3)
-
-setkey(sppEquivalencies_CA, RIA)
-sppNames <- unique(sppEquivalencies_CA$RIA)
-names(sppColors) <- c(sppNames, "mixed")
-sppColors
-
-sppEquivalencies_CA
-objectSynonyms <- list(c('vegMap', "LCC2005"))
-
-# cloudFolderID <- "https://drive.google.com/open?id=1E9vlKqfj_TXjjVPORCSUpGP6FOKa_f6y"
 
 objects <- list(
-  # cloudFolderID = cloudFolderID,
-  studyArea = studyArea
-  , rasterToMatch = rasterToMatch
-  , sppEquiv = sppEquivalencies_CA
-  , sppColorVect = sppColors
-  , studyAreaLarge = studyAreaLarge
-  , studyAreaReporting = studyArea
-  , studyAreaPSP = studyAreaPSP
-  , objecSynonyms = objectSynonyms
-  , fireRegimePolys = fireRegimePolys
-  )
-#
+  "studyArea" = studyArea #always provide a SA
+  , 'studyAreaPSP' = studyAreaPSP
+  ,"rasterToMatch" = rasterToMatch
+  ,"sppEquiv" = sppEquivalencies_CA
+  ,"sppColorVect" = sppColors
+  ,"studyAreaLarge" = studyAreaLarge
+  ,"rasterToMatchLarge" = rasterToMatchLarge   #always provide a RTM
+  ,"biomassMap" = simOutSpp$biomassMap
+  ,"cohortData" = simOutSpp$cohortData
+  #for climate
+  , 'cceArgs' = list(quote(CMI),
+                     quote(ATA),
+                     quote(CMInormal),
+                     quote(mcsModel),
+                     quote(gcsModel),
+                     quote(transferTable),
+                     quote(ecoregionMap),
+                     quote(currentBEC),
+                     quote(BECkey))
+  ,"ecoDistrict" = simOutSpp$ecodistrict
+  ,"ecoregion" = simOutSpp$ecoregion
+  ,"ecoregionMap" = simOutSpp$ecoregionMap
+  ,"pixelGroupMap" = simOutSpp$pixelGroupMap
+  ,"minRelativeB" = simOutSpp$minRelativeB
+  ,"species" = simOutSpp$species
+  ,"speciesLayers" = simOutSpp$speciesLayers
+  ,"speciesEcoregion" = simOutSpp$speciesEcoregion
+  ,"sufficientLight" =simOutSpp$sufficientLight
+  ,"rawBiomassMap" = simOutSpp$rawBiomassMap
+  #new Harvest objects
+  # ,"landscape" = harvestFiles$landscape
+)
+
+
 
 opts <- options(
   "future.globals.maxSize" = 1000*1024^2,
@@ -135,30 +159,25 @@ opts <- options(
   "reproducible.quick" = FALSE,
   "reproducible.overwrite" = TRUE,
   "reproducible.useMemoise" = TRUE, # Brings cached stuff to memory during the second run
-  "reproducible.useNewDigestAlgorithm" = TRUE,  # use the new less strict hashing algo
   "reproducible.useCache" = TRUE,
   "reproducible.cachePath" = paths$cachePath,
   "reproducible.showSimilar" = TRUE, #Always keep this on or scfm will miss cached driver params
   "reproducible.useCloud" = FALSE,
-  "spades.moduleCodeChecks" = FALSE, # Turn off all module's code checking
-  "spades.useRequire" = FALSE # assuming all pkgs installed correctly
+  "spades.moduleCodeChecks" = FALSE # Turn off all module's code checking
 )
 
-# devtools::load_all("C:/Ian/Git/LandR")
-# devtools::load_all("C:/Ian/Git/LandR.CS")
+
+devtools::load_all("LandR")
+devtools::load_all("LandR.CS")
 set.seed(1110)
 mySim <- simInit(times = times, params = parameters, modules = modules, objects = objects,
                  paths = paths, loadOrder = unlist(modules))
 
-#REVIEW SPECIES
-#Edit longevity of some species according to #Burton and Cumming 1995
-# mySim$speciesTable[LandisCode == "PICE.GLA"]$Longevity <- 325 #400 Changed it because of random Google answer
-# mySim$speciesTable[LandisCode == "PINU.CON.LAT"]$Longevity <- 335
-# mySim$speciesTable[LandisCode == "PICE.MAR"]$Longevity <- 250
-# mySim$speciesTable[LandisCode == "POPU.TRE"]$Longevity <- 200
-# mySim$speciesTable[LandisCode == "ABIE.LAS"]$Longevity <- 250
+#Figure out reticulate
+library(reticulate)
+if (!is.null(py$sys & is.null(py$sys$path))) {
+  dev.off()
+  dev()
 
-dev.off()
-dev()
-mySimOut <- spades(mySim, debug = TRUE)
-
+  mySimOut <- spades(mySim, debug = TRUE)
+}

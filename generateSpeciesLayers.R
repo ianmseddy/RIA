@@ -91,10 +91,12 @@ speciesObjects <- list(
   , 'rasterToMatch' = rasterToMatch
   , 'rasterToMatchLarge' = rasterToMatchLarge
   , 'ecoregionRst' = ecoregionRst
+  , 'ecoregionLayer' = NULL
+  , 'standAgeMap' = standAgeMap
 )
 
-speciesModules <- c('PSP_Clean', "Biomass_speciesData", 'Biomass_borealDataPrep', 'Biomass_speciesParameters')
 
+speciesModules <- c('PSP_Clean', "Biomass_speciesData", 'Biomass_borealDataPrep', 'Biomass_speciesParameters')
 simOutSpp <- Cache(SpaDES.core::simInitAndSpades
                    , times = list(start = times$start, end = times$start + 1)
                    , params = speciesParameters

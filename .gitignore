@@ -22,3 +22,8 @@ cache/
 global_reforestation.R
 
 speciesCache/
+LandR/
+LandR.CS/
+ws3/
+harvestCache/
+testHarvest.nb.html
