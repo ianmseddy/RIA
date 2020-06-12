@@ -5,9 +5,10 @@ library(sf)
 library(LandR)
 library(data.table)
 
+# py_install('ws3', pip=TRUE, pip_options=c('--upgrade', '-e git+https://github.com/gparadis/ws3.git@dev#egg=ws3')) #To upgrade WS3
 googledrive::drive_auth(email = "ianmseddy@gmail.com")
 
-basenames <- c("tsa40") #THis must absolutely match whatever studyArea you are going to use for harvest
+basenames <- list("tsa40") #THis must absolutely match whatever studyArea you are going to use for harvest
 source("generateHarvestInit.R")
 
 rasterToMatch <- harvestFiles$landscape$age
@@ -50,16 +51,16 @@ ecoregionRst <- prepInputs(url = 'https://drive.google.com/open?id=1SJf9zQqBcznw
 ecoregionRst <- ecoregionRst$BECref
 standAgeMap <- harvestFiles$landscape$age
 
-times <- list(start = 2011, end = 2025)
+times <- list(start = 2011, end = 2050)
 source('generateSppEquiv.R')
 source('generateSpeciesLayers.R')
 
 spadesModulesDirectory <- file.path("modules") # where modules are
 modules <- list('spades_ws3_dataInit', 'spades_ws3','spades_ws3_landrAge',
                 "PSP_Clean", 'gmcsDataPrep', 'Biomass_core',
-                 'LandR_reforestation', 'assistedMigrationBC')
-#, "scfmLandcoverInit", "scfmRegime", "scfmDriver", "scfmIgnition", "scfmEscape", "scfmSpread")
-times <- list(start = 2015, end = 2035)
+                'LandR_reforestation', 'assistedMigrationBC',
+                "scfmIgnition", "scfmEscape", "scfmSpread")
+times <- list(start = 2017, end = 2025)
 
 
 parameters <- list(
@@ -69,13 +70,16 @@ parameters <- list(
   Biomass_core = list(
     .plotInitialTime = NA
     , .plotInterval = NA
-    , successionTimestep = 10
+    , successionTimestep = 2
     , initialBiomassSource = "cohortData"
     , sppEquivCol = "RIA"
     , plotOverstory = TRUE
     , growthAndMortalityDrivers = "LandR.CS"
     , vegLeadingProportion = 0
-    , .saveInitialTime = times$start + 10),
+    , .saveInitialTime = times$start + 10
+    , keepClimateCols = FALSE
+    , minCohortBiomass = 5
+    , cdColsForAgeBins = c('pixelGroup', 'speciesCode')),
   # Biomass_regeneration = list(
   #   fireInitialTime = times$start + 1,
   #   fireTimestep = 1,
@@ -90,15 +94,15 @@ parameters <- list(
     tifPath = 'tif',
     base.year = 2015,
     scheduler.mode = 'areacontrol',
-    horizon = 1),
+    horizon = 1,
+    target.masks = as.list(paste(basenames, "1 ? ?")), # TSA-wise THLB
+    target.scalefactors = as.list(rep(0.80, length(basenames)))),
   spades_ws3_dataInit = list(
     basenames = basenames,
     tifPath = 'tif',
     base.year = 2015,
     hdtPath = 'hdt',
-    hdtPrefix = 'hdt_',
-    target.masks <- as.list(paste(basenames, "1 ? ?")), # TSA-wise THLB
-    target.scalefactors <- as.list(rep(0.80, length(basenames)))),
+    hdtPrefix = 'hdt_'),
   spades_ws3_landrAge = list(
     basenames = basenames,
     tifPath = 'tif',
@@ -152,32 +156,32 @@ objects <- list(
 
 opts <- options(
   "future.globals.maxSize" = 1000*1024^2,
-  "LandR.assertions" = FALSE,
+  "LandR.assertions" = TRUE,
   "LandR.verbose" = 1,
   "reproducible.futurePlan" = FALSE,
   "reproducible.inputPaths" = NULL,
   "reproducible.quick" = FALSE,
   "reproducible.overwrite" = TRUE,
-  "reproducible.useMemoise" = TRUE, # Brings cached stuff to memory during the second run
+  "reproducible.useMemoise" = FALSE, # Brings cached stuff to memory during the second run
   "reproducible.useCache" = TRUE,
   "reproducible.cachePath" = paths$cachePath,
   "reproducible.showSimilar" = TRUE, #Always keep this on or scfm will miss cached driver params
   "reproducible.useCloud" = FALSE,
-  "spades.moduleCodeChecks" = FALSE # Turn off all module's code checking
+  "spades.moduleCodeChecks" = FALSE, # Turn off all module's code checking
+  'spades.recoveryMode' = 1
 )
 
 
 devtools::load_all("LandR")
 devtools::load_all("LandR.CS")
 set.seed(1110)
+thisRunTime <- Sys.time()
 mySim <- simInit(times = times, params = parameters, modules = modules, objects = objects,
                  paths = paths, loadOrder = unlist(modules))
-
-#Figure out reticulate
-library(reticulate)
+rm(harvestFiles, standAgeMap, ecoregionRst, simOutSpp)
+amc::.gc()
 if (!is.null(py$sys & is.null(py$sys$path))) {
   dev.off()
   dev()
-
   mySimOut <- spades(mySim, debug = TRUE)
 }

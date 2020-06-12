@@ -13,7 +13,7 @@ library(magrittr)
 ## of the simulation
 
 speciesPaths <-list(cachePath = "speciesCache",
-                    modulePath = file.path("modules"),
+                    modulePath = c(file.path("modules"), file.path('modules/scfm')),
                     inputPath = file.path("inputs"),
                     outputPath = file.path("outputs"))
 
@@ -27,6 +27,12 @@ speciesPaths <-list(cachePath = "speciesCache",
 
 #get sppEquivalencies
 source('generateSppEquiv.R')
+
+#get fire
+fireRegimePolys <- prepInputs(destinationPath = 'inputs',
+                              url = "https://drive.google.com/file/d/1Fj6pNKC48qDndPE3d6IxR1dvLF2vLeWc/view?usp=sharing",
+                              studyArea = studyArea)
+
 
 #Create function for updating sub-alpine fir longevity
 firAgeUpdate <- function(sT) {
@@ -80,7 +86,10 @@ speciesParameters <- list(
       "Pice_mar" = 95, #N = 785
       "Pinu_con" = 97, # N = 3172, 99 not an improvement. Maybe 97
       "Popu_tre" = 98 # N = 1997, trying 99
-      ))
+      )),
+  scfmDriver = list(),
+  scfmRegime = list,
+  scfmLandcoverInit = list()
 )
 
 speciesObjects <- list(
