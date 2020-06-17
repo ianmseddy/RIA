@@ -51,16 +51,28 @@ ecoregionRst <- prepInputs(url = 'https://drive.google.com/open?id=1SJf9zQqBcznw
 ecoregionRst <- ecoregionRst$BECref
 standAgeMap <- harvestFiles$landscape$age
 
+temp <- sf::st_as_sf(studyArea)
+temp$fireTemp <- as.numeric(temp$FEATURE_ID)
+#I determined this by looking at map
+temp$FireClass <- 1
+temp$FireClass[temp$fireTemp %in% c(1576, 1580, 1579)] <- 2
+temp <- temp['FireClass'] %>%
+  group_by(FireClass) %>%
+  summarise() %>%
+  st_cast() %>%
+  sf::as_Spatial(.)
+fireRegimePolys <- temp
+
 times <- list(start = 2011, end = 2050)
 source('generateSppEquiv.R')
 source('generateSpeciesLayers.R')
 
-spadesModulesDirectory <- file.path("modules") # where modules are
+spadesModulesDirectory <- c(file.path("modules"), 'modules/scfm') # where modules are
 modules <- list('spades_ws3_dataInit', 'spades_ws3','spades_ws3_landrAge',
-                "PSP_Clean", 'gmcsDataPrep', 'Biomass_core',
+                "PSP_Clean", 'gmcsDataPrep', 'Biomass_core', 'Biomass_regeneration',
                 'LandR_reforestation', 'assistedMigrationBC',
                 "scfmIgnition", "scfmEscape", "scfmSpread")
-times <- list(start = 2017, end = 2025)
+times <- list(start = 2011, end = 2061)
 
 
 parameters <- list(
@@ -70,7 +82,7 @@ parameters <- list(
   Biomass_core = list(
     .plotInitialTime = NA
     , .plotInterval = NA
-    , successionTimestep = 2
+    , successionTimestep = 10
     , initialBiomassSource = "cohortData"
     , sppEquivCol = "RIA"
     , plotOverstory = TRUE
@@ -80,10 +92,10 @@ parameters <- list(
     , keepClimateCols = FALSE
     , minCohortBiomass = 5
     , cdColsForAgeBins = c('pixelGroup', 'speciesCode')),
-  # Biomass_regeneration = list(
-  #   fireInitialTime = times$start + 1,
-  #   fireTimestep = 1,
-  #   successionTimestep = 10),
+  Biomass_regeneration = list(
+    fireInitialTime = times$start + 1,
+    fireTimestep = 1,
+    successionTimestep = 10),
   assistedMigrationBC = list(
     sppEquivCol = 'RIA'),
   gmcsDataPrep = list(
@@ -106,7 +118,10 @@ parameters <- list(
   spades_ws3_landrAge = list(
     basenames = basenames,
     tifPath = 'tif',
-    base.year = 2015
+    base.year = 2015),
+  scfmSpread = list(
+    .plotInitialTime = NA,
+    .plotInterval = NA
   )
 )
 
@@ -114,7 +129,7 @@ parameters <- list(
 setPaths(cachePath =  file.path(getwd(), "cache"),
          modulePath = c(file.path(getwd(), "modules"), file.path("modules/scfm/modules")),
          inputPath = file.path(getwd(), "inputs"),
-         outputPath = file.path(getwd(),"outputs"))
+         outputPath = file.path(getwd(),"outputs/AM50yr"))
 
 paths <- SpaDES.core::getPaths()
 
@@ -148,6 +163,16 @@ objects <- list(
   ,"speciesEcoregion" = simOutSpp$speciesEcoregion
   ,"sufficientLight" =simOutSpp$sufficientLight
   ,"rawBiomassMap" = simOutSpp$rawBiomassMap
+  , 'vegMap' = simOutSpp$vegMap
+  , 'landscapeAttr' = simOutSpp$landscapeAttr
+  , 'flammableMap' = simOutSpp$flammableMap
+  , 'cellsByZone' = simOutSpp$cellsByZone
+  , 'fireRegimePolys' = fireRegimePolys
+  , 'scfmRegimePars' = simOutSpp$scfmRegimePars
+  , 'firePoints' = simOutSpp$firePoints
+  , 'scfmDriverPars' = simOutSpp$scfmDriverPars
+  , 'fireRegimeRas' = simOutSpp$fireRegimeRas
+
   #new Harvest objects
   # ,"landscape" = harvestFiles$landscape
 )
@@ -171,14 +196,22 @@ opts <- options(
   'spades.recoveryMode' = 1
 )
 
+outputObjs = list('cohortData',
+                  'pixelGroupMap',
+                  'burnMap')
+outputs = data.frame(objectName = outputObjs,
+                     saveTime = rep(seq(times$start, times$end, 20), each = length(outputObjs)),
+                     eventPriority = 10)
+
 
 devtools::load_all("LandR")
 devtools::load_all("LandR.CS")
-set.seed(1110)
 thisRunTime <- Sys.time()
+amc::.gc()
+set.seed(1110)
 mySim <- simInit(times = times, params = parameters, modules = modules, objects = objects,
                  paths = paths, loadOrder = unlist(modules))
-rm(harvestFiles, standAgeMap, ecoregionRst, simOutSpp)
+# rm(harvestFiles, standAgeMap, ecoregionRst, simOutSpp)
 amc::.gc()
 if (!is.null(py$sys & is.null(py$sys$path))) {
   dev.off()

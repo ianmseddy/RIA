@@ -13,7 +13,7 @@ library(magrittr)
 ## of the simulation
 
 speciesPaths <-list(cachePath = "speciesCache",
-                    modulePath = c(file.path("modules"), file.path('modules/scfm')),
+                    modulePath = c(file.path("modules"), file.path('modules/scfm/modules')),
                     inputPath = file.path("inputs"),
                     outputPath = file.path("outputs"))
 
@@ -27,11 +27,6 @@ speciesPaths <-list(cachePath = "speciesCache",
 
 #get sppEquivalencies
 source('generateSppEquiv.R')
-
-#get fire
-fireRegimePolys <- prepInputs(destinationPath = 'inputs',
-                              url = "https://drive.google.com/file/d/1Fj6pNKC48qDndPE3d6IxR1dvLF2vLeWc/view?usp=sharing",
-                              studyArea = studyArea)
 
 
 #Create function for updating sub-alpine fir longevity
@@ -87,9 +82,9 @@ speciesParameters <- list(
       "Pinu_con" = 97, # N = 3172, 99 not an improvement. Maybe 97
       "Popu_tre" = 98 # N = 1997, trying 99
       )),
-  scfmDriver = list(),
-  scfmRegime = list,
-  scfmLandcoverInit = list()
+  scfmDriver = list(
+    targetN = 5000
+  )
 )
 
 speciesObjects <- list(
@@ -102,11 +97,13 @@ speciesObjects <- list(
   , 'ecoregionRst' = ecoregionRst
   , 'ecoregionLayer' = NULL
   , 'standAgeMap' = standAgeMap
+  , 'fireRegimePolys' = fireRegimePolys
 )
 
 
-speciesModules <- c('PSP_Clean', "Biomass_speciesData", 'Biomass_borealDataPrep', 'Biomass_speciesParameters')
-simOutSpp <- Cache(SpaDES.core::simInitAndSpades
+speciesModules <- c('PSP_Clean', "Biomass_speciesData", 'Biomass_borealDataPrep', 'Biomass_speciesParameters',
+                    'scfmLandcoverInit', 'scfmRegime', 'scfmDriver')
+simOutSpp <- Cache(simInitAndSpades
                    , times = list(start = times$start, end = times$start + 1)
                    , params = speciesParameters
                    , modules = speciesModules
