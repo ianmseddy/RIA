@@ -37,11 +37,13 @@ firAgeUpdate <- function(sT) {
 
 speciesParameters <- list(
   Biomass_speciesData = list(
-    sppEquivCol = "RIA",
-    type = c("KNN", "CASFRI")
+    sppEquivCol = "RIA"
+    , .studyAreaName = studyAreaName
+    , type = c("KNN", "CASFRI")
   )
   , Biomass_borealDataPrep = list(
     successionTimestep = 10
+    , .studyAreaName = studyAreaName
     , subsetDataBiomassModel = 50
     , pixelGroupAgeClass = 10
     , sppEquivCol = 'RIA'

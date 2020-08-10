@@ -8,23 +8,34 @@ library(data.table)
 # py_install('ws3', pip=TRUE, pip_options=c('--upgrade', '-e git+https://github.com/gparadis/ws3.git@dev#egg=ws3')) #To upgrade WS3
 googledrive::drive_auth(email = "ianmseddy@gmail.com")
 
-basenames <- list("tsa40") #THis must absolutely match whatever studyArea you are going to use for harvest
+basenames <- list("tsa40", 'tsa41', 'tsa16', 'tsa24', 'tsa08') #THis must absolutely match whatever studyArea you are going to use for harvest
 source("generateHarvestInit.R")
 
 rasterToMatch <- harvestFiles$landscape$age
 
 #Change the TSA to either Ft St John or Ft Nelson
-studyArea <- prepInputs(url = 'https://drive.google.com/open?id=16dHisi-dM3ryJTazFHSQlqljVc0McThk',
-                        destinationPath = 'inputs',
-                        overwrite = TRUE,
-                        useCache = TRUE,
-                        rasterToMatch = rasterToMatch)
+studyAreaLarge <- prepInputs(url = 'https://drive.google.com/file/d/1LxacDOobTrRUppamkGgVAUFIxNT4iiHU/view?usp=sharing',
+                             destinationPath = paths$inputPath,
+                             overwrite = TRUE,
+                             useCache = 'overwrite',
+                             FUN = 'sf::st_read') %>%
+  sf::st_as_sf(.)
+studyAreaLarge <- studyAreaLarge[studyAreaLarge$TSA_NUMBER %in% c('08', '16', '24', '40', '41'),]
+if (length(unique(sf::st_geometry_type(studyAreaLarge))) > 1)  ## convert sfc to sf if needed
+  sf::st_geometry(studyAreaLarge) <- sf::st_collection_extract(x = sf::st_geometry(studyAreaLarge), type = "POLYGON")
+# studyAreaLarge <- sf::as_Spatial(studyAreaLarge)
+studyAreaLarge <- sf::st_buffer(studyAreaLarge, 0) %>%
+  sf::as_Spatial(.) %>%
+  raster::aggregate(.) %>%
+  sf::st_as_sf(.)
+studyAreaLarge$studyArea <- "5TSA"
+studyAreaLarge <- sf::as_Spatial(studyAreaLarge)
 #
 # studyAreaLarge <- prepInputs(url = 'https://drive.google.com/open?id=18XPcOKeQdty102dYHizKH3ZPE187BiYi',
 #                              destinationPath = 'inputs',
 #                              overwrite = TRUE) %>%
 #   spTransform(., CRSobj = crs(studyArea))
-studyAreaLarge <- studyArea
+studyArea <- studyAreaLarge
 # rasterToMatchLarge <- prepInputsLCC(studyArea = studyAreaLarge,
 #                       destinationPath = 'inputs',
 #                       useCache = TRUE,
@@ -32,6 +43,10 @@ studyAreaLarge <- studyArea
 #                       useSAcrs = TRUE,
 #                       res = c(250, 250))
 rasterToMatchLarge <- rasterToMatch
+studyArea <- spTransform(studyArea, CRS = crs(rasterToMatch))
+studyAreaLarge <- spTransform(studyAreaLarge, CRS = crs(rasterToMatchLarge))
+studyAreaName <- 'FiveTSA'
+
 
 #For climate scenarios
 studyAreaPSP <- prepInputs(url = 'https://drive.google.com/open?id=10yhleaumhwa3hAv_8o7TE15lyesgkDV_',
@@ -63,7 +78,7 @@ temp <- temp['FireClass'] %>%
   sf::as_Spatial(.)
 fireRegimePolys <- temp
 
-times <- list(start = 2011, end = 2050)
+times <- list(start = 2011, end = 2101)
 source('generateSppEquiv.R')
 source('generateSpeciesLayers.R')
 
@@ -72,8 +87,6 @@ modules <- list('spades_ws3_dataInit', 'spades_ws3','spades_ws3_landrAge',
                 "PSP_Clean", 'gmcsDataPrep', 'Biomass_core', 'Biomass_regeneration',
                 'LandR_reforestation', 'assistedMigrationBC',
                 "scfmIgnition", "scfmEscape", "scfmSpread")
-times <- list(start = 2011, end = 2061)
-
 
 parameters <- list(
   Biomass_speciesData = list(
@@ -129,7 +142,7 @@ parameters <- list(
 setPaths(cachePath =  file.path(getwd(), "cache"),
          modulePath = c(file.path(getwd(), "modules"), file.path("modules/scfm/modules")),
          inputPath = file.path(getwd(), "inputs"),
-         outputPath = file.path(getwd(),"outputs/AM50yr"))
+         outputPath = file.path(getwd(),"outputs/AM90yr"))
 
 paths <- SpaDES.core::getPaths()
 
