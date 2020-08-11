@@ -5,10 +5,11 @@ library(sf)
 library(LandR)
 library(data.table)
 
+#need LandR.CS
 # py_install('ws3', pip=TRUE, pip_options=c('--upgrade', '-e git+https://github.com/gparadis/ws3.git@dev#egg=ws3')) #To upgrade WS3
-googledrive::drive_auth(email = "ianmseddy@gmail.com")
+googledrive::drive_deauth()
 
-basenames <- list("tsa40", 'tsa41', 'tsa16', 'tsa24', 'tsa08') #THis must absolutely match whatever studyArea you are going to use for harvest
+basenames <- list("tsa40", 'tsa41', 'tsa16', 'tsa24', 'tsa08') #This must absolutely match whatever studyArea you are going to use for harvest
 source("generateHarvestInit.R")
 
 rasterToMatch <- harvestFiles$landscape$age
@@ -17,13 +18,13 @@ rasterToMatch <- harvestFiles$landscape$age
 studyAreaLarge <- prepInputs(url = 'https://drive.google.com/file/d/1LxacDOobTrRUppamkGgVAUFIxNT4iiHU/view?usp=sharing',
                              destinationPath = paths$inputPath,
                              overwrite = TRUE,
-                             useCache = 'overwrite',
+                             useCache = TRUE,
                              FUN = 'sf::st_read') %>%
   sf::st_as_sf(.)
 studyAreaLarge <- studyAreaLarge[studyAreaLarge$TSA_NUMBER %in% c('08', '16', '24', '40', '41'),]
 if (length(unique(sf::st_geometry_type(studyAreaLarge))) > 1)  ## convert sfc to sf if needed
   sf::st_geometry(studyAreaLarge) <- sf::st_collection_extract(x = sf::st_geometry(studyAreaLarge), type = "POLYGON")
-# studyAreaLarge <- sf::as_Spatial(studyAreaLarge)
+
 studyAreaLarge <- sf::st_buffer(studyAreaLarge, 0) %>%
   sf::as_Spatial(.) %>%
   raster::aggregate(.) %>%
@@ -65,18 +66,13 @@ ecoregionRst <- prepInputs(url = 'https://drive.google.com/open?id=1SJf9zQqBcznw
                           useCache = TRUE)
 ecoregionRst <- ecoregionRst$BECref
 standAgeMap <- harvestFiles$landscape$age
-
-temp <- sf::st_as_sf(studyArea)
-temp$fireTemp <- as.numeric(temp$FEATURE_ID)
-#I determined this by looking at map
-temp$FireClass <- 1
-temp$FireClass[temp$fireTemp %in% c(1576, 1580, 1579)] <- 2
-temp <- temp['FireClass'] %>%
-  group_by(FireClass) %>%
-  summarise() %>%
-  st_cast() %>%
-  sf::as_Spatial(.)
-fireRegimePolys <- temp
+fireRegimePolys <- prepInputs(url = 'https://drive.google.com/file/d/1Fj6pNKC48qDndPE3d6IxR1dvLF2vLeWc/view?usp=sharing',
+                              destinationPath = 'inputs',
+                              rasterToMatch = rasterToMatch,
+                              studyArea = studyArea,
+                              useCache = TRUE,
+                              userTags = c("fireRegimePolys")
+                              )
 
 times <- list(start = 2011, end = 2101)
 source('generateSppEquiv.R')
@@ -185,9 +181,6 @@ objects <- list(
   , 'firePoints' = simOutSpp$firePoints
   , 'scfmDriverPars' = simOutSpp$scfmDriverPars
   , 'fireRegimeRas' = simOutSpp$fireRegimeRas
-
-  #new Harvest objects
-  # ,"landscape" = harvestFiles$landscape
 )
 
 
@@ -216,15 +209,12 @@ outputs = data.frame(objectName = outputObjs,
                      saveTime = rep(seq(times$start, times$end, 20), each = length(outputObjs)),
                      eventPriority = 10)
 
-
-devtools::load_all("LandR")
-devtools::load_all("LandR.CS")
 thisRunTime <- Sys.time()
 amc::.gc()
 set.seed(1110)
 mySim <- simInit(times = times, params = parameters, modules = modules, objects = objects,
                  paths = paths, loadOrder = unlist(modules))
-# rm(harvestFiles, standAgeMap, ecoregionRst, simOutSpp)
+
 amc::.gc()
 if (!is.null(py$sys & is.null(py$sys$path))) {
   dev.off()
