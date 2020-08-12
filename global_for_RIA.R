@@ -63,8 +63,9 @@ ecoregionRst <- prepInputs(url = 'https://drive.google.com/open?id=1SJf9zQqBcznw
                           fun = 'raster::stack',
                           rasterToMatch = rasterToMatchLarge,
                           overwrite = TRUE,
-                          useCache = TRUE)
-ecoregionRst <- ecoregionRst$BECref
+                          useCache = TRUE) #to preserve original filenames, workaround for now
+ecoregionRst <- ecoregionRst[[1]] #fix reproducible
+
 standAgeMap <- harvestFiles$landscape$age
 fireRegimePolys <- prepInputs(url = 'https://drive.google.com/file/d/1Fj6pNKC48qDndPE3d6IxR1dvLF2vLeWc/view?usp=sharing',
                               destinationPath = 'inputs',
