@@ -5,6 +5,7 @@ library(sf)
 library(LandR)
 library(data.table)
 
+mirr
 #need LandR.CS
 # py_install('ws3', pip=TRUE, pip_options=c('--upgrade', '-e git+https://github.com/gparadis/ws3.git@dev#egg=ws3')) #To upgrade WS3
 googledrive::drive_deauth()
@@ -13,9 +14,14 @@ basenames <- list("tsa40", 'tsa41', 'tsa16', 'tsa24', 'tsa08') #This must absolu
 source("generateHarvestInit.R")
 
 rasterToMatch <- harvestFiles$landscape$age
-
 #Change the TSA to either Ft St John or Ft Nelson
-studyAreaLarge <- prepInputs(url = 'https://drive.google.com/file/d/1LxacDOobTrRUppamkGgVAUFIxNT4iiHU/view?usp=sharing',
+studyAreaLarge <- prepInputs(url = 'https://drive.google.com/file/d/1YwkdFDuy00Zl__40XaDOMRn-cDePD-nI/view?usp=sharing',
+                             targetFile = 'BC_TSA_corrected.shp',
+                             alsoExtract = c("BC_TSA_corrected.dbf",
+                                             "BC_TSA_corrected.sbx",
+                                             "BC_TSA_corrected.shx",
+                                             "BC_TSA_corrected.prj",
+                                             "BC_TSA_corrected.cpg"),
                              destinationPath = paths$inputPath,
                              overwrite = TRUE,
                              useCache = TRUE,
@@ -78,7 +84,9 @@ fireRegimePolys <- prepInputs(url = 'https://drive.google.com/file/d/1Fj6pNKC48q
 times <- list(start = 2011, end = 2101)
 source('generateSppEquiv.R')
 source('generateSpeciesLayers.R')
+source('sourceClimateData.R')
 
+times <- list(start = 2011, end = 2021)
 spadesModulesDirectory <- c(file.path("modules"), 'modules/scfm') # where modules are
 modules <- list('spades_ws3_dataInit', 'spades_ws3','spades_ws3_landrAge',
                 "PSP_Clean", 'gmcsDataPrep', 'Biomass_core', 'Biomass_regeneration',
@@ -92,13 +100,14 @@ parameters <- list(
   Biomass_core = list(
     .plotInitialTime = NA
     , .plotInterval = NA
+    , .saveInterval = 10
+    , .saveInitialTime = times$start + 10
     , successionTimestep = 10
     , initialBiomassSource = "cohortData"
     , sppEquivCol = "RIA"
     , plotOverstory = TRUE
     , growthAndMortalityDrivers = "LandR.CS"
     , vegLeadingProportion = 0
-    , .saveInitialTime = times$start + 10
     , keepClimateCols = FALSE
     , minCohortBiomass = 5
     , cdColsForAgeBins = c('pixelGroup', 'speciesCode')),
@@ -107,10 +116,11 @@ parameters <- list(
     fireTimestep = 1,
     successionTimestep = 10),
   assistedMigrationBC = list(
-    sppEquivCol = 'RIA'),
+    doAssistedMigration = TRUE
+    , sppEquivCol = 'RIA'),
   gmcsDataPrep = list(
-    useHeight = TRUE,
-    GCM = 'CCSM4_RCP4.5'),
+    useHeight = TRUE
+    , GCM = 'CCSM4_RCP4.5'),
   spades_ws3 = list(
     basenames = basenames,
     tifPath = 'tif',
@@ -188,7 +198,7 @@ objects <- list(
 
 opts <- options(
   "future.globals.maxSize" = 1000*1024^2,
-  "LandR.assertions" = TRUE,
+  "LandR.assertions" = FALSE, #This will slow things down
   "LandR.verbose" = 1,
   "reproducible.futurePlan" = FALSE,
   "reproducible.inputPaths" = NULL,
@@ -199,6 +209,7 @@ opts <- options(
   "reproducible.cachePath" = paths$cachePath,
   "reproducible.showSimilar" = TRUE, #Always keep this on or scfm will miss cached driver params
   "reproducible.useCloud" = FALSE,
+  'reproducible.useGDAL' = FALSE,
   "spades.moduleCodeChecks" = FALSE, # Turn off all module's code checking
   'spades.recoveryMode' = 1
 )
@@ -213,12 +224,9 @@ outputs = data.frame(objectName = outputObjs,
 thisRunTime <- Sys.time()
 amc::.gc()
 set.seed(1110)
+#figure out
 mySim <- simInit(times = times, params = parameters, modules = modules, objects = objects,
                  paths = paths, loadOrder = unlist(modules))
 
 amc::.gc()
-if (!is.null(py$sys & is.null(py$sys$path))) {
-  dev.off()
-  dev()
-  mySimOut <- spades(mySim, debug = TRUE)
-}
+mySimOut <- spades(mySim, debug = TRUE)
