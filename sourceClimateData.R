@@ -1,4 +1,4 @@
-{
+sourceClimData <- function(scenario){
   if (scenario == "RCP8.5") {
     ATAstack <- prepInputs(url = "https://drive.google.com/open?id=16BNxOXnt0indxUUht5A_vKbeVb_0lDCr",
                            targetFile = 'RIA_1ArcMinute_CCSM4_85_ATA2011-2100.grd',
