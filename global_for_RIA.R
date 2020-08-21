@@ -5,7 +5,6 @@ library(sf)
 library(LandR)
 library(data.table)
 
-mirr
 #need LandR.CS
 # py_install('ws3', pip=TRUE, pip_options=c('--upgrade', '-e git+https://github.com/gparadis/ws3.git@dev#egg=ws3')) #To upgrade WS3
 googledrive::drive_deauth()
@@ -43,6 +42,7 @@ studyAreaLarge <- sf::as_Spatial(studyAreaLarge)
 #                              overwrite = TRUE) %>%
 #   spTransform(., CRSobj = crs(studyArea))
 studyArea <- studyAreaLarge
+studyArea <- buffer(studyArea, 0)
 # rasterToMatchLarge <- prepInputsLCC(studyArea = studyAreaLarge,
 #                       destinationPath = 'inputs',
 #                       useCache = TRUE,
@@ -75,16 +75,19 @@ ecoregionRst <- ecoregionRst[[1]] #fix reproducible
 standAgeMap <- harvestFiles$landscape$age
 fireRegimePolys <- prepInputs(url = 'https://drive.google.com/file/d/1Fj6pNKC48qDndPE3d6IxR1dvLF2vLeWc/view?usp=sharing',
                               destinationPath = 'inputs',
-                              rasterToMatch = rasterToMatch,
-                              studyArea = studyArea,
+                              # rasterToMatch = rasterToMatch,
+                              # studyArea = studyArea,
                               useCache = TRUE,
                               userTags = c("fireRegimePolys")
                               )
+fireRegimePolys <- buffer(fireRegimePolys, 0)
+fireRegimePoylys <- postProcess(fireRegimePolys, studyArea = studyArea, rasterToMatch = rasterToMatch) #self-intersection in googledrive file
 
 times <- list(start = 2011, end = 2101)
 source('generateSppEquiv.R')
 source('generateSpeciesLayers.R')
 source('sourceClimateData.R')
+climObjs <- sourceClimData(scenario = 'RCP4.5')
 
 times <- list(start = 2011, end = 2021)
 spadesModulesDirectory <- c(file.path("modules"), 'modules/scfm') # where modules are
@@ -192,6 +195,9 @@ objects <- list(
   , 'firePoints' = simOutSpp$firePoints
   , 'scfmDriverPars' = simOutSpp$scfmDriverPars
   , 'fireRegimeRas' = simOutSpp$fireRegimeRas
+  , 'ATAstack' = climObjs$ATAstack
+  , 'CMIstack' = climObjs$CMIstack
+  , 'CMInormal' = climObjs$CMInormal
 )
 
 
