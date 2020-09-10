@@ -114,14 +114,17 @@ parameters <- list(
     , vegLeadingProportion = 0
     , keepClimateCols = FALSE
     , minCohortBiomass = 5
-    , cdColsForAgeBins = c('pixelGroup', 'speciesCode')),
+    , cohortDefinitionCols = c('pixelGroup', 'speciesCode', 'age', 'Provenance')),
   Biomass_regeneration = list(
     fireInitialTime = times$start + 1,
     fireTimestep = 1,
-    successionTimestep = 10),
+    successionTimestep = 10,
+    cohortDefinitionCols = c('pixelGroup', 'speciesCode', 'age', 'Provenance')),
   assistedMigrationBC = list(
     doAssistedMigration = TRUE
     , sppEquivCol = 'RIA'),
+  LandR_reforestation = list(
+    cohortDefinitionCols = c('pixelGroup', 'speciesCode', 'age', 'Provenance')),
   gmcsDataPrep = list(
     useHeight = TRUE
     , GCM = 'CCSM4_RCP4.5'),
@@ -153,7 +156,7 @@ parameters <- list(
 setPaths(cachePath =  file.path(getwd(), "cache"),
          modulePath = c(file.path(getwd(), "modules"), file.path("modules/scfm/modules")),
          inputPath = file.path(getwd(), "inputs"),
-         outputPath = file.path(getwd(),"outputs/AM90yr2"))
+         outputPath = file.path(getwd(),"outputs/AM90yr1"))
 
 paths <- SpaDES.core::getPaths()
 
