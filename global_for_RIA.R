@@ -2,8 +2,10 @@ library(reticulate)
 library(SpaDES)
 library(raster)
 library(sf)
-library(LandR)
 library(data.table)
+
+
+devtools::install_github("PredictiveEcology/LandR@development")
 
 #need LandR.CS
 # py_install('ws3', pip=TRUE, pip_options=c('--upgrade', '-e git+https://github.com/gparadis/ws3.git@dev#egg=ws3')) #To upgrade WS3
@@ -75,21 +77,20 @@ ecoregionRst <- ecoregionRst[[1]] #fix reproducible
 standAgeMap <- harvestFiles$landscape$age
 fireRegimePolys <- prepInputs(url = 'https://drive.google.com/file/d/1Fj6pNKC48qDndPE3d6IxR1dvLF2vLeWc/view?usp=sharing',
                               destinationPath = 'inputs',
-                              # rasterToMatch = rasterToMatch,
-                              # studyArea = studyArea,
+                              rasterToMatch = rasterToMatch,
+                              studyArea = studyArea,
                               useCache = TRUE,
                               userTags = c("fireRegimePolys")
                               )
-fireRegimePolys <- buffer(fireRegimePolys, 0)
-fireRegimePoylys <- postProcess(fireRegimePolys, studyArea = studyArea, rasterToMatch = rasterToMatch) #self-intersection in googledrive file
 
-times <- list(start = 2011, end = 2101)
+times <- list(start = 2011, end = 2021)
 source('generateSppEquiv.R')
 source('generateSpeciesLayers.R')
 source('sourceClimateData.R')
+times <- list(start = 2011, end = 2101) #this is so the cached genSpeciesLayers.R is returned
 climObjs <- sourceClimData(scenario = 'RCP4.5')
 
-times <- list(start = 2011, end = 2021)
+# times <- list(start = 2011, end = 2021)
 spadesModulesDirectory <- c(file.path("modules"), 'modules/scfm') # where modules are
 modules <- list('spades_ws3_dataInit', 'spades_ws3','spades_ws3_landrAge',
                 "PSP_Clean", 'gmcsDataPrep', 'Biomass_core', 'Biomass_regeneration',
@@ -152,7 +153,7 @@ parameters <- list(
 setPaths(cachePath =  file.path(getwd(), "cache"),
          modulePath = c(file.path(getwd(), "modules"), file.path("modules/scfm/modules")),
          inputPath = file.path(getwd(), "inputs"),
-         outputPath = file.path(getwd(),"outputs/AM90yr"))
+         outputPath = file.path(getwd(),"outputs/AM90yr2"))
 
 paths <- SpaDES.core::getPaths()
 
@@ -220,19 +221,24 @@ opts <- options(
   'spades.recoveryMode' = 1
 )
 
-outputObjs = list('cohortData',
-                  'pixelGroupMap',
-                  'burnMap')
-outputs = data.frame(objectName = outputObjs,
-                     saveTime = rep(seq(times$start, times$end, 20), each = length(outputObjs)),
+outputObjs = c('cohortData',
+               'pixelGroupMap',
+               'burnMap',
+               'harvestPixelHistory')
+saveTimes <- rep(seq(times$start, times$end, 30))
+
+outputs = data.frame(objectName = rep(outputObjs, times = length(saveTimes)),
+                     saveTime = rep(saveTimes, each = length(outputObjs)),
                      eventPriority = 10)
 
 thisRunTime <- Sys.time()
 amc::.gc()
-set.seed(1110)
 #figure out
+noAMParams <- parameters
+noAMParams$assistedMigrationBC$doAssistedMigration <- FALSE
+
 mySim <- simInit(times = times, params = parameters, modules = modules, objects = objects,
-                 paths = paths, loadOrder = unlist(modules))
+                 paths = paths, loadOrder = unlist(modules), outputs = outputs)
 
 amc::.gc()
 mySimOut <- spades(mySim, debug = TRUE)
