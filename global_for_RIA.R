@@ -4,7 +4,6 @@ library(raster)
 library(sf)
 library(data.table)
 
-
 devtools::install_github("PredictiveEcology/LandR@development")
 
 #need LandR.CS
@@ -38,19 +37,9 @@ studyAreaLarge <- sf::st_buffer(studyAreaLarge, 0) %>%
   sf::st_as_sf(.)
 studyAreaLarge$studyArea <- "5TSA"
 studyAreaLarge <- sf::as_Spatial(studyAreaLarge)
-#
-# studyAreaLarge <- prepInputs(url = 'https://drive.google.com/open?id=18XPcOKeQdty102dYHizKH3ZPE187BiYi',
-#                              destinationPath = 'inputs',
-#                              overwrite = TRUE) %>%
-#   spTransform(., CRSobj = crs(studyArea))
 studyArea <- studyAreaLarge
 studyArea <- buffer(studyArea, 0)
-# rasterToMatchLarge <- prepInputsLCC(studyArea = studyAreaLarge,
-#                       destinationPath = 'inputs',
-#                       useCache = TRUE,
-#                       overwrite = TRUE,
-#                       useSAcrs = TRUE,
-#                       res = c(250, 250))
+
 rasterToMatchLarge <- rasterToMatch
 studyArea <- spTransform(studyArea, CRS = crs(rasterToMatch))
 studyAreaLarge <- spTransform(studyAreaLarge, CRS = crs(rasterToMatchLarge))
@@ -109,10 +98,12 @@ parameters <- list(
     , successionTimestep = 10
     , initialBiomassSource = "cohortData"
     , sppEquivCol = "RIA"
+    , gmcsGrowthLimits = c(33, 150)
+    , gmcsMortLimits = c(33, 300)
     , plotOverstory = TRUE
     , growthAndMortalityDrivers = "LandR.CS"
     , vegLeadingProportion = 0
-    , keepClimateCols = FALSE
+    , keepClimateCols = TRUE
     , minCohortBiomass = 5
     , cohortDefinitionCols = c('pixelGroup', 'speciesCode', 'age', 'Provenance')),
   Biomass_regeneration = list(
@@ -156,7 +147,7 @@ parameters <- list(
 setPaths(cachePath =  file.path(getwd(), "cache"),
          modulePath = c(file.path(getwd(), "modules"), file.path("modules/scfm/modules")),
          inputPath = file.path(getwd(), "inputs"),
-         outputPath = file.path(getwd(),"outputs/AM90yr1"))
+         outputPath = file.path(getwd(),"outputs/noAM90yr1"))
 
 paths <- SpaDES.core::getPaths()
 
@@ -237,11 +228,21 @@ outputs = data.frame(objectName = rep(outputObjs, times = length(saveTimes)),
 thisRunTime <- Sys.time()
 amc::.gc()
 #figure out
-noAMParams <- parameters
-noAMParams$assistedMigrationBC$doAssistedMigration <- FALSE
+noAMparameters <- parameters
+noAMparameters$assistedMigrationBC$doAssistedMigration <- FALSE
 
+set.seed(2331)
 mySim <- simInit(times = times, params = parameters, modules = modules, objects = objects,
                  paths = paths, loadOrder = unlist(modules), outputs = outputs)
 
 amc::.gc()
 mySimOut <- spades(mySim, debug = TRUE)
+
+
+#
+# setPaths(cachePath =  file.path(getwd(), "cache"),
+#          modulePath = c(file.path(getwd(), "modules"), file.path("modules/scfm/modules")),
+#          inputPath = file.path(getwd(), "inputs"),
+#          outputPath = file.path(getwd(),"outputs/AM90yr2"))
+#
+# paths <- SpaDES.core::getPaths()
