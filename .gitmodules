@@ -46,10 +46,6 @@
 	path = modules/assistedMigrationBC
 	url = https://github.com/ianmseddy/assistedMigrationBC.git
 
-[submodule "modules/caribouPopGrowthModel"]
-	path = modules/caribouPopGrowthModel
-	url = https://github.com/tati-micheletti/caribouPopGrowthModel.git
-
 [submodule "modules/spades_ws3"]
 	path = modules/spades_ws3
 	url = https://github.com/gparadis/spades_ws3.git
