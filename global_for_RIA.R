@@ -78,7 +78,7 @@ source('generateSppEquiv.R')
 source('generateSpeciesLayers.R')
 source('sourceClimateData.R')
 times <- list(start = 2011, end = 2101) #this is so the cached genSpeciesLayers.R is returned
-climObjs <- sourceClimData(scenario = 'RCP4.5', model = 'CanESM2')
+climObjs <- sourceClimData(scenario = 'RCP4.5', model = 'CCSM4')
 
 # times <- list(start = 2011, end = 2021)
 spadesModulesDirectory <- c(file.path("modules"), 'modules/scfm') # where modules are
@@ -106,17 +106,18 @@ parameters <- list(
     , vegLeadingProportion = 0
     , keepClimateCols = FALSE
     , minCohortBiomass = 5
-    , cohortDefinitionCols = c('pixelGroup', 'speciesCode', 'age', 'Provenance', 'harvested')),
+    , cohortDefinitionCols = c('pixelGroup', 'speciesCode', 'age', 'Provenance', 'planted')),
   Biomass_regeneration = list(
     fireInitialTime = times$start + 1,
     fireTimestep = 1,
     successionTimestep = 10,
-    cohortDefinitionCols = c('pixelGroup', 'speciesCode', 'age', 'Provenance', 'harvested')),
+    cohortDefinitionCols = c('pixelGroup', 'speciesCode', 'age', 'Provenance', 'planted')),
   assistedMigrationBC = list(
     doAssistedMigration = TRUE
-    , sppEquivCol = 'RIA'),
+    , sppEquivCol = 'RIA'
+    , trackHarvest = TRUE),
   LandR_reforestation = list(
-    cohortDefinitionCols = c('pixelGroup', 'speciesCode', 'age', 'Provenance', 'harvested'),
+    cohortDefinitionCols = c('pixelGroup', 'speciesCode', 'age', 'Provenance', 'planted'),
     trackHarvest = TRUE),
   gmcsDataPrep = list(
     useHeight = TRUE
@@ -234,7 +235,8 @@ noAMparameters <- parameters
 noAMparameters$assistedMigrationBC$doAssistedMigration <- FALSE
 
 set.seed(2330)
-mySim <- simInit(times = times, params = parameters, modules = modules, objects = objects,
+devtools::load_all("LandR.CS")
+mySim <- simInit(times = times, params = noAMparameters, modules = modules, objects = objects,
                  paths = paths, loadOrder = unlist(modules), outputs = outputs)
 
 amc::.gc()
