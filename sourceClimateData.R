@@ -1,6 +1,7 @@
 sourceClimData <- function(scenario, model = 'CCSM4'){
+
   CMInormal <- prepInputs(url = "https://drive.google.com/open?id=1AH_jAWi39pAeLtjHRuqEn4FArXNUt-ap",
-                          targetFile = 'RIA_1ArcMinute_CCSM4_CMInormal.tif',
+                          targetFile = 'RIA_1ArcMinute_CMInormal.tif',
                           fun = 'raster::raster',
                           studyArea = studyArea,
                           rasterToMatch = rasterToMatch,
@@ -54,16 +55,16 @@ sourceClimData <- function(scenario, model = 'CCSM4'){
 
     } else if (scenario == "RCP4.5") {
       ATAstack <- prepInputs(url = "https://drive.google.com/file/d/1RMSiv4_M57IKDHrs9amMyctkyRWvclGH/view?usp=sharing",
-                             targetFile = 'RIA_1ArcMinute_CanESM2_RCP45_ATA2011-2100.grd',
-                             alsoExtract = 'RIA_1ArcMinute_CanESM2_RCP45_ATA2011-2100.gri',
+                             targetFile = 'RIA_1ArcMin_CanESM2_RCP45_ATA2011-2100.grd',
+                             alsoExtract = 'RIA_1ArcMin_CanESM2_RCP45_ATA2011-2100.gri',
                              destinationPath = 'inputs',
-                             filename2 = 'inputs/RIA_1ArcMinute_CanESM2_45_ATA2011-2100.grd',
+                             filename2 = 'inputs/RIA_1ArcMin_CanESM2_45_ATA2011-2100.grd',
                              fun = 'raster::stack')
       CMIstack <- prepInputs(url = 'https://drive.google.com/file/d/1RMSiv4_M57IKDHrs9amMyctkyRWvclGH/view?usp=sharing',
-                             targetFile = 'RIA_1ArcMinute_CanESM2_RCP45_CMI2011-2100.grd',
-                             alsoExtract = 'RIA_1ArcMinute_CanESM2_RCP45_CMI2011-2100.gri',
+                             targetFile = 'RIA_1ArcMin_CanESM2_RCP45_CMI2011-2100.grd',
+                             alsoExtract = 'RIA_1ArcMin_CanESM2_RCP45_CMI2011-2100.gri',
                              destinationPath = 'inputs',
-                             filename2 = 'inputs/RIA_1ArcMinute_CanESM2_45_CMI2011-2100.grd',
+                             filename2 = 'inputs/RIA_1ArcMin_CanESM2_45_CMI2011-2100.grd',
                              fun = 'raster::stack') #get the high quality stuff
 
     }
@@ -101,6 +102,8 @@ sourceClimData <- function(scenario, model = 'CCSM4'){
     } else {
       stop("don't have RCP 8.5")
     }
+  } else {
+    stop("don't recognize Model")
   }
 
   climData = list(ATAstack = ATAstack,
