@@ -67,6 +67,7 @@ standAgeMap <- harvestFiles$landscape$age
 fireRegimePolys <- prepInputs(url = 'https://drive.google.com/file/d/1Fj6pNKC48qDndPE3d6IxR1dvLF2vLeWc/view?usp=sharing',
                               destinationPath = 'inputs',
                               rasterToMatch = rasterToMatch,
+                              filename2 = NULL,
                               studyArea = studyArea,
                               useCache = TRUE,
                               userTags = c("fireRegimePolys")
@@ -77,7 +78,7 @@ source('generateSppEquiv.R')
 source('generateSpeciesLayers.R')
 source('sourceClimateData.R')
 times <- list(start = 2011, end = 2101) #this is so the cached genSpeciesLayers.R is returned
-climObjs <- sourceClimData(scenario = 'RCP4.5')
+climObjs <- sourceClimData(scenario = 'RCP4.5', model = 'CanESM2')
 
 # times <- list(start = 2011, end = 2021)
 spadesModulesDirectory <- c(file.path("modules"), 'modules/scfm') # where modules are
@@ -103,19 +104,20 @@ parameters <- list(
     , plotOverstory = TRUE
     , growthAndMortalityDrivers = "LandR.CS"
     , vegLeadingProportion = 0
-    , keepClimateCols = TRUE
+    , keepClimateCols = FALSE
     , minCohortBiomass = 5
-    , cohortDefinitionCols = c('pixelGroup', 'speciesCode', 'age', 'Provenance')),
+    , cohortDefinitionCols = c('pixelGroup', 'speciesCode', 'age', 'Provenance', 'harvested')),
   Biomass_regeneration = list(
     fireInitialTime = times$start + 1,
     fireTimestep = 1,
     successionTimestep = 10,
-    cohortDefinitionCols = c('pixelGroup', 'speciesCode', 'age', 'Provenance')),
+    cohortDefinitionCols = c('pixelGroup', 'speciesCode', 'age', 'Provenance', 'harvested')),
   assistedMigrationBC = list(
     doAssistedMigration = TRUE
     , sppEquivCol = 'RIA'),
   LandR_reforestation = list(
-    cohortDefinitionCols = c('pixelGroup', 'speciesCode', 'age', 'Provenance')),
+    cohortDefinitionCols = c('pixelGroup', 'speciesCode', 'age', 'Provenance', 'harvested'),
+    trackHarvest = TRUE),
   gmcsDataPrep = list(
     useHeight = TRUE
     , GCM = 'CCSM4_RCP4.5'),
@@ -231,7 +233,7 @@ amc::.gc()
 noAMparameters <- parameters
 noAMparameters$assistedMigrationBC$doAssistedMigration <- FALSE
 
-set.seed(2331)
+set.seed(2330)
 mySim <- simInit(times = times, params = parameters, modules = modules, objects = objects,
                  paths = paths, loadOrder = unlist(modules), outputs = outputs)
 
@@ -239,10 +241,10 @@ amc::.gc()
 mySimOut <- spades(mySim, debug = TRUE)
 
 
-#
-# setPaths(cachePath =  file.path(getwd(), "cache"),
-#          modulePath = c(file.path(getwd(), "modules"), file.path("modules/scfm/modules")),
-#          inputPath = file.path(getwd(), "inputs"),
-#          outputPath = file.path(getwd(),"outputs/AM90yr2"))
-#
-# paths <- SpaDES.core::getPaths()
+
+setPaths(cachePath =  file.path(getwd(), "cache"),
+         modulePath = c(file.path(getwd(), "modules"), file.path("modules/scfm/modules")),
+         inputPath = file.path(getwd(), "inputs"),
+         outputPath = file.path(getwd(),"outputs//CanESM2/AM90yr1"))
+
+paths <- SpaDES.core::getPaths()
