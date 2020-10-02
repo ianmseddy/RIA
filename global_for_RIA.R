@@ -5,7 +5,7 @@ library(sf)
 library(data.table)
 
 devtools::install_github("PredictiveEcology/LandR@development")
-
+data.table::setDTthreads(2)
 #need LandR.CS
 # py_install('ws3', pip=TRUE, pip_options=c('--upgrade', '-e git+https://github.com/gparadis/ws3.git@dev#egg=ws3')) #To upgrade WS3
 googledrive::drive_deauth()
@@ -115,10 +115,10 @@ parameters <- list(
   assistedMigrationBC = list(
     doAssistedMigration = TRUE
     , sppEquivCol = 'RIA'
-    , trackHarvest = TRUE),
+    , trackPlanting = TRUE),
   LandR_reforestation = list(
     cohortDefinitionCols = c('pixelGroup', 'speciesCode', 'age', 'Provenance', 'planted'),
-    trackHarvest = TRUE),
+    trackPlanting = TRUE),
   gmcsDataPrep = list(
     useHeight = TRUE
     , GCM = 'CCSM4_RCP4.5'),
@@ -150,7 +150,7 @@ parameters <- list(
 setPaths(cachePath =  file.path(getwd(), "cache"),
          modulePath = c(file.path(getwd(), "modules"), file.path("modules/scfm/modules")),
          inputPath = file.path(getwd(), "inputs"),
-         outputPath = file.path(getwd(),"outputs/noAM90yr1"))
+         outputPath = file.path(getwd(),"outputs/AM90yr1"))
 
 paths <- SpaDES.core::getPaths()
 
@@ -227,6 +227,7 @@ saveTimes <- rep(seq(times$start, times$end, 30))
 outputs = data.frame(objectName = rep(outputObjs, times = length(saveTimes)),
                      saveTime = rep(saveTimes, each = length(outputObjs)),
                      eventPriority = 10)
+outputs <- rbind(outputs, data.frame(objectName = c('summarySubCohortData', 'summaryBySpecies'), saveTime = 2101, eventPriority = 10))
 
 thisRunTime <- Sys.time()
 amc::.gc()
@@ -234,19 +235,17 @@ amc::.gc()
 noAMparameters <- parameters
 noAMparameters$assistedMigrationBC$doAssistedMigration <- FALSE
 
-set.seed(2330)
-devtools::load_all("LandR.CS")
-mySim <- simInit(times = times, params = noAMparameters, modules = modules, objects = objects,
+# devtools::load_all("LandR.CS")
+mySim <- simInit(times = times, params = parameters, modules = modules, objects = objects,
                  paths = paths, loadOrder = unlist(modules), outputs = outputs)
 
 amc::.gc()
 mySimOut <- spades(mySim, debug = TRUE)
 
-
-
-setPaths(cachePath =  file.path(getwd(), "cache"),
-         modulePath = c(file.path(getwd(), "modules"), file.path("modules/scfm/modules")),
-         inputPath = file.path(getwd(), "inputs"),
-         outputPath = file.path(getwd(),"outputs//CanESM2/AM90yr1"))
-
-paths <- SpaDES.core::getPaths()
+#
+# setPaths(cachePath =  file.path(getwd(), "cache"),
+#          modulePath = c(file.path(getwd(), "modules"), file.path("modules/scfm/modules")),
+#          inputPath = file.path(getwd(), "inputs"),
+#          outputPath = file.path(getwd(),"outputs/noAM90yr1"))
+#
+# paths <- SpaDES.core::getPaths()
