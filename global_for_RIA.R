@@ -73,12 +73,12 @@ fireRegimePolys <- prepInputs(url = 'https://drive.google.com/file/d/1Fj6pNKC48q
                               userTags = c("fireRegimePolys")
                               )
 
-times <- list(start = 2011, end = 2021)
+times <- list(start = 2011, end = 2101)
 source('generateSppEquiv.R')
 source('generateSpeciesLayers.R')
 source('sourceClimateData.R')
 times <- list(start = 2011, end = 2101) #this is so the cached genSpeciesLayers.R is returned
-climObjs <- sourceClimData(scenario = 'RCP4.5', model = 'CCSM4')
+climObjs <- sourceClimData(scenario = 'RCP4.5', model = 'CanESM2')
 
 # times <- list(start = 2011, end = 2021)
 spadesModulesDirectory <- c(file.path("modules"), 'modules/scfm') # where modules are
@@ -150,7 +150,7 @@ parameters <- list(
 setPaths(cachePath =  file.path(getwd(), "cache"),
          modulePath = c(file.path(getwd(), "modules"), file.path("modules/scfm/modules")),
          inputPath = file.path(getwd(), "inputs"),
-         outputPath = file.path(getwd(),"outputs/AM90yr1"))
+         outputPath = file.path(getwd(),"outputs/CanESM2/AM90yr1"))
 
 paths <- SpaDES.core::getPaths()
 
@@ -202,7 +202,7 @@ objects <- list(
 
 opts <- options(
   "future.globals.maxSize" = 1000*1024^2,
-  "LandR.assertions" = FALSE, #This will slow things down
+  "LandR.assertions" = FALSE, #This will slow things down and stops due to sumB algos
   "LandR.verbose" = 1,
   "reproducible.futurePlan" = FALSE,
   "reproducible.inputPaths" = NULL,
@@ -234,8 +234,8 @@ amc::.gc()
 #figure out
 noAMparameters <- parameters
 noAMparameters$assistedMigrationBC$doAssistedMigration <- FALSE
+devtools::load_all("LandR.CS") #currently loading a version that preserves htp Pred
 
-# devtools::load_all("LandR.CS")
 mySim <- simInit(times = times, params = parameters, modules = modules, objects = objects,
                  paths = paths, loadOrder = unlist(modules), outputs = outputs)
 
@@ -246,6 +246,6 @@ mySimOut <- spades(mySim, debug = TRUE)
 # setPaths(cachePath =  file.path(getwd(), "cache"),
 #          modulePath = c(file.path(getwd(), "modules"), file.path("modules/scfm/modules")),
 #          inputPath = file.path(getwd(), "inputs"),
-#          outputPath = file.path(getwd(),"outputs/noAM90yr1"))
-#
+#          outputPath = file.path(getwd(),"outputs/CanESM2/noAM90yr1"))
+# # #
 # paths <- SpaDES.core::getPaths()
