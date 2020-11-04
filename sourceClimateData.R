@@ -83,7 +83,18 @@ sourceClimData <- function(scenario, model = 'CCSM4'){
                              filename2 = 'inputs/RIA_1ArcMinute_CNRM_CM5_45_CMI2011-2100.grd',
                              fun = 'raster::stack') #get the high quality stuff
     } else {
-      stop("don't have RCP 8.5")
+      ATAstack <- prepInputs(url = "https://drive.google.com/file/d/15idufxxqwAVPU2RR_3S_txKoTnQKFGJw/view?usp=sharing",
+                             targetFile = 'RIA_1ArcMinute_CNRM_CM5_RCP85_ATA2011-2100.grd',
+                             alsoExtract = 'RIA_1ArcMinute_CNRM_CM5_RCP85_ATA2011-2100.gri',
+                             destinationPath = 'inputs',
+                             filename2 = 'inputs/RIA_1ArcMinute_CanESM2_45_ATA2011-2100.grd',
+                             fun = 'raster::stack')
+      CMIstack <- prepInputs(url = 'https://drive.google.com/file/d/15idufxxqwAVPU2RR_3S_txKoTnQKFGJw/view?usp=sharing',
+                             targetFile = 'RIA_1ArcMinute_CNRM_CM5_RCP85_CMI2011-2100.grd',
+                             alsoExtract = 'RIA_1ArcMinute_CNRM_CM5_RCP85_CMI2011-2100.gri',
+                             destinationPath = 'inputs',
+                             filename2 = 'inputs/RIA_1ArcMinute_CNRM_CM5_85_CMI2011-2100.grd',
+                             fun = 'raster::stack') #get the high quality stuff
     }
   } else if (model == 'CSIRO MK3') {
     if (scenario == 'RCP4.5') {
@@ -100,7 +111,18 @@ sourceClimData <- function(scenario, model = 'CCSM4'){
                              filename2 = 'inputs/RIA_1ArcMinute_CSIRO_mk3_45_CMI2011-2100.grd',
                              fun = 'raster::stack') #get the high quality stuff
     } else {
-      stop("don't have RCP 8.5")
+      ATAstack <- prepInputs(url = "https://drive.google.com/file/d/1SZ8zDH5H3frLIiwXa8M6t0W15Rueh9Nf/view?usp=sharing",
+                             targetFile = 'RIA_1ArcMinute_CSIRO_mk3_ATA2011-2100.grd',
+                             alsoExtract = 'RIA_1ArcMinute_CSIRO_mk3_ATA2011-2100.gri',
+                             destinationPath = 'inputs',
+                             filename2 = 'inputs/RIA_1ArcMinute_CSIRO_mk3_45_ATA2011-2100.grd',
+                             fun = 'raster::stack')
+      CMIstack <- prepInputs(url = 'https://drive.google.com/file/d/1SZ8zDH5H3frLIiwXa8M6t0W15Rueh9Nf/view?usp=sharing',
+                             targetFile = 'RIA_1ArcMinute_CSIRO_mk3_CMI2011-2100.grd',
+                             alsoExtract = 'RIA_1ArcMinute_CSIRO_mk3_CMI2011-2100.gri',
+                             destinationPath = 'inputs',
+                             filename2 = 'inputs/RIA_1ArcMinute_CSIRO_mk3_45_CMI2011-2100.grd',
+                             fun = 'raster::stack') #get the high quality stuff
     }
   } else {
     stop("don't recognize Model")
