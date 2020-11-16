@@ -68,12 +68,21 @@ speciesParameters <- list(
     )
     , constrainGrowthCurve = list(
       "Abie_las" = c(0.3, .7),
-      "Betu_pap" = c(0.3, .7),
+      "Betu_pap" = c(0, 0.3),
       "Pice_eng" = c(0.3, .7),
       "Pice_gla" = c(0.3, .7),
-      "Pice_mar" = c(0.3, .7),
+      "Pice_mar" = c(0.4, .6),
       "Pinu_con" = c(0.3, .7),
-      "Popu_tre" = c(0.3, .7)
+      "Popu_tre" = c(0.4, 1)
+    )
+    , constrainMortalityShape = list(
+      "Abie_las" = c(15, 25),
+      "Betu_pap" = c(15, 20),
+      "Pice_eng" = c(15, 25),
+      "Pice_gla" = c(15, 25),
+      "Pice_mar" = c(15, 25),
+      "Pinu_con" = c(15, 25),
+      "Popu_tre" = c(20, 25)
     )
     , quantileAgeSubset = list(
       "Abie_las" = 95, #N = 250 ''
@@ -82,7 +91,7 @@ speciesParameters <- list(
       "Pice_gla" = 95, #N = 1849
       "Pice_mar" = 95, #N = 785
       "Pinu_con" = 97, # N = 3172, 99 not an improvement. Maybe 97
-      "Popu_tre" = 98 # N = 1997, trying 99
+      "Popu_tre" = 99 # N = 1997, trying 99
       )),
   scfmDriver = list(
     targetN = 5000
