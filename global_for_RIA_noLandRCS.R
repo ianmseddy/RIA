@@ -76,15 +76,15 @@ fireRegimePolys <- prepInputs(url = 'https://drive.google.com/file/d/1Fj6pNKC48q
 times <- list(start = 2011, end = 2101)
 source('generateSppEquiv.R')
 source('generateSpeciesLayers.R')
-source('sourceClimateData.R')
+# source('sourceClimateData.R')
 times <- list(start = 2011, end = 2101) #this is so the cached genSpeciesLayers.R is returned
-climObjs <- sourceClimData(scenario = scenario, model = model)
+# climObjs <- sourceClimData(scenario = scenario, model = model)
 
 # times <- list(start = 2011, end = 2021)
 spadesModulesDirectory <- c(file.path("modules"), 'modules/scfm') # where modules are
 modules <- list('spades_ws3_dataInit', 'spades_ws3','spades_ws3_landrAge',
-                "PSP_Clean", 'gmcsDataPrep', 'Biomass_core', 'Biomass_regeneration',
-                'LandR_reforestation', 'assistedMigrationBC',
+                "PSP_Clean", 'Biomass_core', 'Biomass_regeneration',
+                'LandR_reforestation',
                 "scfmIgnition", "scfmEscape", "scfmSpread")
 
 parameters <- list(
@@ -99,29 +99,29 @@ parameters <- list(
     , successionTimestep = 10
     , initialBiomassSource = "cohortData"
     , sppEquivCol = "RIA"
-    , gmcsGrowthLimits = c(33, 150)
-    , gmcsMortLimits = c(33, 300)
+    # , gmcsGrowthLimits = c(33, 150)
+    # , gmcsMortLimits = c(33, 300)
     , plotOverstory = TRUE
-    , growthAndMortalityDrivers = "LandR.CS"
+    , growthAndMortalityDrivers = "LandR"
     , vegLeadingProportion = 0
-    , keepClimateCols = TRUE #Try this
+    # , keepClimateCols = TRUE #Try this
     , minCohortBiomass = 5
-    , cohortDefinitionCols = c('pixelGroup', 'speciesCode', 'age', 'Provenance', 'planted')),
+    , cohortDefinitionCols = c('pixelGroup', 'speciesCode', 'age', 'Provenance')),
   Biomass_regeneration = list(
     fireInitialTime = times$start + 1,
     fireTimestep = 1,
     successionTimestep = 10,
-    cohortDefinitionCols = c('pixelGroup', 'speciesCode', 'age', 'Provenance', 'planted')),
-  assistedMigrationBC = list(
-    doAssistedMigration = TRUE
-    , sppEquivCol = 'RIA'
-    , trackPlanting = TRUE),
+    cohortDefinitionCols = c('pixelGroup', 'speciesCode', 'age', 'Provenance')),
+  # assistedMigrationBC = list(
+  #   doAssistedMigration = TRUE
+  #   , sppEquivCol = 'RIA'
+  #   , trackPlanting = TRUE),
   LandR_reforestation = list(
-    cohortDefinitionCols = c('pixelGroup', 'speciesCode', 'age', 'Provenance', 'planted'),
+    cohortDefinitionCols = c('pixelGroup', 'speciesCode', 'age', 'Provenance'),
     trackPlanting = TRUE),
-  gmcsDataPrep = list(
-    useHeight = TRUE
-    , GCM = 'CCSM4_RCP4.5'),
+  # gmcsDataPrep = list(
+  #   useHeight = TRUE
+  #   , GCM = 'CCSM4_RCP4.5'),
   spades_ws3 = list(
     basenames = basenames,
     tifPath = 'tif',
@@ -166,15 +166,15 @@ objects <- list(
   ,"biomassMap" = simOutSpp$biomassMap
   ,"cohortData" = simOutSpp$cohortData
   #for climate
-  , 'cceArgs' = list(quote(CMI),
-                     quote(ATA),
-                     quote(CMInormal),
-                     quote(mcsModel),
-                     quote(gcsModel),
-                     quote(transferTable),
-                     quote(ecoregionMap),
-                     quote(currentBEC),
-                     quote(BECkey))
+  # , 'cceArgs' = list(quote(CMI),
+  #                    quote(ATA),
+  #                    quote(CMInormal),
+  #                    quote(mcsModel),
+  #                    quote(gcsModel),
+  #                    quote(transferTable),
+  #                    quote(ecoregionMap),
+  #                    quote(currentBEC),
+  #                    quote(BECkey))
   ,"ecoDistrict" = simOutSpp$ecodistrict
   ,"ecoregion" = simOutSpp$ecoregion
   ,"ecoregionMap" = simOutSpp$ecoregionMap
@@ -194,9 +194,9 @@ objects <- list(
   , 'firePoints' = simOutSpp$firePoints
   , 'scfmDriverPars' = simOutSpp$scfmDriverPars
   , 'fireRegimeRas' = simOutSpp$fireRegimeRas
-  , 'ATAstack' = climObjs$ATAstack
-  , 'CMIstack' = climObjs$CMIstack
-  , 'CMInormal' = climObjs$CMInormal
+  # , 'ATAstack' = climObjs$ATAstack
+  # , 'CMIstack' = climObjs$CMIstack
+  # , 'CMInormal' = climObjs$CMInormal
 )
 
 
