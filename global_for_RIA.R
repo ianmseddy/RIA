@@ -1,5 +1,5 @@
 library(reticulate)
-library(SpaDES)
+library(SpaDES.core)
 library(raster)
 library(sf)
 library(data.table)
@@ -76,175 +76,27 @@ fireRegimePolys <- prepInputs(url = 'https://drive.google.com/file/d/1Fj6pNKC48q
 times <- list(start = 2011, end = 2101)
 source('generateSppEquiv.R')
 source('generateSpeciesLayers.R')
-source('sourceClimateData.R')
-times <- list(start = 2011, end = 2101) #this is so the cached genSpeciesLayers.R is returned
-climObjs <- sourceClimData(scenario = scenario, model = model)
 
-# times <- list(start = 2011, end = 2021)
-spadesModulesDirectory <- c(file.path("modules"), 'modules/scfm') # where modules are
-modules <- list('spades_ws3_dataInit', 'spades_ws3','spades_ws3_landrAge',
-                "PSP_Clean", 'gmcsDataPrep', 'Biomass_core', 'Biomass_regeneration',
-                'LandR_reforestation', 'assistedMigrationBC',
-                "scfmIgnition", "scfmEscape", "scfmSpread")
-
-parameters <- list(
-  Biomass_speciesData = list(
-    sppEquivCol = "RIA",
-    type = c("KNN", "CASFRI")),
-  Biomass_core = list(
-    .plotInitialTime = NA
-    , .plotInterval = 10
-    , .saveInterval = 10
-    , .saveInitialTime = times$start + 10
-    , successionTimestep = 10
-    , initialBiomassSource = "cohortData"
-    , sppEquivCol = "RIA"
-    , gmcsGrowthLimits = c(33, 150)
-    , gmcsMortLimits = c(33, 300)
-    , plotOverstory = TRUE
-    , growthAndMortalityDrivers = "LandR.CS"
-    , vegLeadingProportion = 0
-    , keepClimateCols = TRUE #Try this
-    , minCohortBiomass = 5
-    , cohortDefinitionCols = c('pixelGroup', 'speciesCode', 'age', 'Provenance', 'planted')),
-  Biomass_regeneration = list(
-    fireInitialTime = times$start + 1,
-    fireTimestep = 1,
-    successionTimestep = 10,
-    cohortDefinitionCols = c('pixelGroup', 'speciesCode', 'age', 'Provenance', 'planted')),
-  assistedMigrationBC = list(
-    doAssistedMigration = TRUE
-    , sppEquivCol = 'RIA'
-    , trackPlanting = TRUE),
-  LandR_reforestation = list(
-    cohortDefinitionCols = c('pixelGroup', 'speciesCode', 'age', 'Provenance', 'planted'),
-    trackPlanting = TRUE),
-  gmcsDataPrep = list(
-    useHeight = TRUE
-    , GCM = 'CCSM4_RCP4.5'),
-  spades_ws3 = list(
-    basenames = basenames,
-    tifPath = 'tif',
-    base.year = 2015,
-    scheduler.mode = 'areacontrol',
-    horizon = 1,
-    target.masks = as.list(paste(basenames, "1 ? ?")), # TSA-wise THLB
-    target.scalefactors = as.list(rep(1, length(basenames)))), #originally 0.8
-  spades_ws3_dataInit = list(
-    basenames = basenames,
-    tifPath = 'tif',
-    base.year = 2015,
-    hdtPath = 'hdt',
-    hdtPrefix = 'hdt_'),
-  spades_ws3_landrAge = list(
-    basenames = basenames,
-    tifPath = 'tif',
-    base.year = 2015),
-  scfmSpread = list(
-    .plotInitialTime = NA,
-    .plotInterval = NA
-  )
-)
-
-## Paths are not workign with multiple module paths yet
-
-  setPaths(cachePath =  file.path(getwd(), "cache"),
-           modulePath = c(file.path(getwd(), "modules"), file.path("modules/scfm/modules")),
-           inputPath = file.path(getwd(), "inputs"),
-           outputPath = file.path(getwd(),"outputs", outputDir))
-
-  paths <- SpaDES.core::getPaths()
-
-objects <- list(
-  "studyArea" = studyArea #always provide a SA
-  , 'studyAreaPSP' = studyAreaPSP
-  ,"rasterToMatch" = rasterToMatch
-  ,"sppEquiv" = sppEquivalencies_CA
-  ,"sppColorVect" = sppColors
-  ,"studyAreaLarge" = studyAreaLarge
-  ,"rasterToMatchLarge" = rasterToMatchLarge   #always provide a RTM
-  ,"biomassMap" = simOutSpp$biomassMap
-  ,"cohortData" = simOutSpp$cohortData
-  #for climate
-  , 'cceArgs' = list(quote(CMI),
-                     quote(ATA),
-                     quote(CMInormal),
-                     quote(mcsModel),
-                     quote(gcsModel),
-                     quote(transferTable),
-                     quote(ecoregionMap),
-                     quote(currentBEC),
-                     quote(BECkey))
-  ,"ecoDistrict" = simOutSpp$ecodistrict
-  ,"ecoregion" = simOutSpp$ecoregion
-  ,"ecoregionMap" = simOutSpp$ecoregionMap
-  ,"pixelGroupMap" = simOutSpp$pixelGroupMap
-  ,"minRelativeB" = simOutSpp$minRelativeB
-  ,"species" = simOutSpp$species
-  ,"speciesLayers" = simOutSpp$speciesLayers
-  ,"speciesEcoregion" = simOutSpp$speciesEcoregion
-  ,"sufficientLight" =simOutSpp$sufficientLight
-  ,"rawBiomassMap" = simOutSpp$rawBiomassMap
-  , 'vegMap' = simOutSpp$vegMap
-  , 'landscapeAttr' = simOutSpp$landscapeAttr
-  , 'flammableMap' = simOutSpp$flammableMap
-  , 'cellsByZone' = simOutSpp$cellsByZone
-  , 'fireRegimePolys' = fireRegimePolys
-  , 'scfmRegimePars' = simOutSpp$scfmRegimePars
-  , 'firePoints' = simOutSpp$firePoints
-  , 'scfmDriverPars' = simOutSpp$scfmDriverPars
-  , 'fireRegimeRas' = simOutSpp$fireRegimeRas
-  , 'ATAstack' = climObjs$ATAstack
-  , 'CMIstack' = climObjs$CMIstack
-  , 'CMInormal' = climObjs$CMInormal
-)
-
-
-
-opts <- options(
-  "future.globals.maxSize" = 1000*1024^2,
-  "LandR.assertions" = FALSE, #This will slow things down and stops due to sumB algos
-  "LandR.verbose" = 1,
-  "reproducible.futurePlan" = FALSE,
-  "reproducible.inputPaths" = NULL,
-  "reproducible.quick" = FALSE,
-  "reproducible.overwrite" = TRUE,
-  "reproducible.useMemoise" = FALSE, # Brings cached stuff to memory during the second run
-  "reproducible.useCache" = TRUE,
-  "reproducible.cachePath" = paths$cachePath,
-  "reproducible.showSimilar" = TRUE, #Always keep this on or scfm will miss cached driver params
-  "reproducible.useCloud" = FALSE,
-  'reproducible.useGDAL' = FALSE,
-  "spades.moduleCodeChecks" = FALSE, # Turn off all module's code checking
-  'spades.recoveryMode' = 1
-)
-
-outputObjs = c('cohortData',
-               'pixelGroupMap',
-               'burnMap',
-               'harvestPixelHistory')
-saveTimes <- rep(seq(times$start, times$end, 30))
-
-outputs = data.frame(objectName = rep(outputObjs, times = length(saveTimes)),
-                     saveTime = rep(saveTimes, each = length(outputObjs)),
-                     eventPriority = 10)
-outputs <- rbind(outputs, data.frame(objectName = c('summarySubCohortData', 'summaryBySpecies'), saveTime = times$end, eventPriority = 10))
-outputs <- rbind(outputs, data.frame(objectName = c("plantedCohorts"), saveTime = times$end, eventPriority = 10))
-
-thisRunTime <- Sys.time()
-amc::.gc()
-#figure out
-paramsToUse <- parameters
-noAMparameters <- parameters
-noAMparameters$assistedMigrationBC$doAssistedMigration <- FALSE
-if(!AM){
-  paramsToUse <- noAMparameters
+if (writeOutputs) {
+  saveRDS(simOutSpp$biomassMap, file.path('outputs/paramData/biomassMap.rds'))
+  saveRDS(simOutSpp$cohortData, file.path('outputs/paramData/cohortData.rds'))
+  saveRDS(simOutSpp$ecodistrict, file.path('outputs/paramData/ecodistrict.rds'))
+  saveRDS(simOutSpp$ecoregion, file.path('outputs/paramData/ecoregion.rds'))
+  saveRDS(simOutSpp$ecoregionMap, file.path('outputs/paramData/ecoregionMap.rds'))
+  saveRDS(simOutSpp$pixelGroupMap, file.path('outputs/paramData/pixelGroupMap.rds'))
+  saveRDS(simOutSpp$minRelativeB, file.path('outputs/paramData/minRelativeB.rds'))
+  saveRDS(simOutSpp$species, file.path('outputs/paramData/species.rds'))
+  saveRDS(simOutSpp$speciesLayers, file.path('outputs/paramData/speciesLayers.rds'))
+  saveRDS(simOutSpp$speciesEcoregion, file.path('outputs/paramData/speciesEcoregion.rds'))
+  saveRDS(simOutSpp$sufficientLight, file.path('outputs/paramData/sufficientLight.rds'))
+  saveRDS(simOutSpp$rawBiomassMap, file.path('outputs/paramData/rawBiomassMap.rds'))
+  saveRDS(simOutSpp$vegMap, file.path('outputs/paramData/vegMap.rds'))
+  saveRDS(simOutSpp$landscapeAttr, file.path('outputs/paramData/landscapeAttr.rds'))
+  saveRDS(simOutSpp$flammableMap, file.path('outputs/paramData/flammableMap.rds'))
+  saveRDS(simOutSpp$cellsByZone, file.path('outputs/paramData/cellsByZone.rds'))
+  saveRDS(simOut$fireRegimePolys, file.path('outputs/paramData/fireRegimePolys.rds'))
+  saveRDS(sim$scfmRegimePars, file.path('outputs/paramData/scfmRegimePars.rds'))
+  saveRDS(simOutSpp$firePoints, file.path('outputs/paramData/firePoints.rds'))
+  saveRDS(simOutSpp$scfmDriverPars, file.path('outputs/paramData/scfmDriverPars.rds'))
+  saveRDS(simOutSpp$fireRegimeRas, file.path('outputs/paramData/fireRegimeRas.rds'))
 }
-
-mySim <- simInit(times = times, params = paramsToUse, modules = modules, objects = objects,
-                 paths = paths, loadOrder = unlist(modules), outputs = outputs)
-#
-amc::.gc()
-mySimOut <- spades(mySim, debug = TRUE)
-# Ian save the stuff needed for plots
-

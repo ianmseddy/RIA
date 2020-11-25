@@ -1,6 +1,10 @@
+library(SpaDES.core)
+source('global_for_RIA.R')
 AM <- FALSE
-model <- 'CanESM2'
+writeOutputs <- FALSE
+readOutputs <- FALSE
+model <- 'CNRM CM5'
 scenario <- 'RCP4.5'
-outputDir <- 'outputs/noLandRCS'
-source('global_for_RIA_noLandRCS.R')
+outputDir <- 'CNRM_CM5_RCP45/noAM90yr1'
+source('global_dynamic.R')
 
