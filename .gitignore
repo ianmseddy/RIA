@@ -23,6 +23,7 @@ cache/
 global_reforestation.R
 
 speciesCache/
+scfmCache/
 LandR/
 LandR.CS/
 ws3/

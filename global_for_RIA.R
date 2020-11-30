@@ -10,7 +10,14 @@ data.table::setDTthreads(2)
 # py_install('ws3', pip=TRUE, pip_options=c('--upgrade', '-e git+https://github.com/gparadis/ws3.git@dev#egg=ws3')) #To upgrade WS3
 googledrive::drive_deauth()
 
-basenames <- list("tsa40", 'tsa41', 'tsa16', 'tsa24', 'tsa08') #This must absolutely match whatever studyArea you are going to use for harvest
+if (runName == '4TSAs'){
+  TSAs <- c('16', '24', '40', '41')
+} else {
+  TSAs <- c('08', '16', '24', '40', '41')
+}
+
+basenames <-paste0('tsa', TSAs)
+basenames <- as.list(basenames) #This must absolutely match whatever studyArea you are going to use for harvest
 source("generateHarvestInit.R")
 
 rasterToMatch <- harvestFiles$landscape$age
@@ -27,7 +34,8 @@ studyAreaLarge <- prepInputs(url = 'https://drive.google.com/file/d/1YwkdFDuy00Z
                              useCache = TRUE,
                              FUN = 'sf::st_read') %>%
   sf::st_as_sf(.)
-studyAreaLarge <- studyAreaLarge[studyAreaLarge$TSA_NUMBER %in% c('08', '16', '24', '40', '41'),]
+
+studyAreaLarge <- studyAreaLarge[studyAreaLarge$TSA_NUMBER %in%TSAs,]
 if (length(unique(sf::st_geometry_type(studyAreaLarge))) > 1)  ## convert sfc to sf if needed
   sf::st_geometry(studyAreaLarge) <- sf::st_collection_extract(x = sf::st_geometry(studyAreaLarge), type = "POLYGON")
 
@@ -35,7 +43,7 @@ studyAreaLarge <- sf::st_buffer(studyAreaLarge, 0) %>%
   sf::as_Spatial(.) %>%
   raster::aggregate(.) %>%
   sf::st_as_sf(.)
-studyAreaLarge$studyArea <- "5TSA"
+studyAreaLarge$studyArea <- runName
 studyAreaLarge <- sf::as_Spatial(studyAreaLarge)
 studyArea <- studyAreaLarge
 studyArea <- buffer(studyArea, 0)
@@ -43,7 +51,7 @@ studyArea <- buffer(studyArea, 0)
 rasterToMatchLarge <- rasterToMatch
 studyArea <- spTransform(studyArea, CRS = crs(rasterToMatch))
 studyAreaLarge <- spTransform(studyAreaLarge, CRS = crs(rasterToMatchLarge))
-studyAreaName <- 'FiveTSA'
+studyAreaName <- runName
 
 
 #For climate scenarios
@@ -75,28 +83,29 @@ fireRegimePolys <- prepInputs(url = 'https://drive.google.com/file/d/1Fj6pNKC48q
 
 times <- list(start = 2011, end = 2101)
 source('generateSppEquiv.R')
-source('generateSpeciesLayers.R')
+
 
 if (writeOutputs) {
-  saveRDS(simOutSpp$biomassMap, file.path('outputs/paramData/biomassMap.rds'))
-  saveRDS(simOutSpp$cohortData, file.path('outputs/paramData/cohortData.rds'))
-  saveRDS(simOutSpp$ecodistrict, file.path('outputs/paramData/ecodistrict.rds'))
-  saveRDS(simOutSpp$ecoregion, file.path('outputs/paramData/ecoregion.rds'))
-  saveRDS(simOutSpp$ecoregionMap, file.path('outputs/paramData/ecoregionMap.rds'))
-  saveRDS(simOutSpp$pixelGroupMap, file.path('outputs/paramData/pixelGroupMap.rds'))
-  saveRDS(simOutSpp$minRelativeB, file.path('outputs/paramData/minRelativeB.rds'))
-  saveRDS(simOutSpp$species, file.path('outputs/paramData/species.rds'))
-  saveRDS(simOutSpp$speciesLayers, file.path('outputs/paramData/speciesLayers.rds'))
-  saveRDS(simOutSpp$speciesEcoregion, file.path('outputs/paramData/speciesEcoregion.rds'))
-  saveRDS(simOutSpp$sufficientLight, file.path('outputs/paramData/sufficientLight.rds'))
-  saveRDS(simOutSpp$rawBiomassMap, file.path('outputs/paramData/rawBiomassMap.rds'))
-  saveRDS(simOutSpp$vegMap, file.path('outputs/paramData/vegMap.rds'))
-  saveRDS(simOutSpp$landscapeAttr, file.path('outputs/paramData/landscapeAttr.rds'))
-  saveRDS(simOutSpp$flammableMap, file.path('outputs/paramData/flammableMap.rds'))
-  saveRDS(simOutSpp$cellsByZone, file.path('outputs/paramData/cellsByZone.rds'))
-  saveRDS(simOutSpp$fireRegimePolys, file.path('outputs/paramData/fireRegimePolys.rds'))
-  saveRDS(simOutSpp$scfmRegimePars, file.path('outputs/paramData/scfmRegimePars.rds'))
-  saveRDS(simOutSpp$firePoints, file.path('outputs/paramData/firePoints.rds'))
-  saveRDS(simOutSpp$scfmDriverPars, file.path('outputs/paramData/scfmDriverPars.rds'))
-  saveRDS(simOutSpp$fireRegimeRas, file.path('outputs/paramData/fireRegimeRas.rds'))
+  source('generateSpeciesLayers.R')
+  saveRDS(simOutSpp$biomassMap, file.path('outputs/paramData/', runName, 'biomassMap.rds'))
+  saveRDS(simOutSpp$cohortData, file.path('outputs/paramData/', runName, 'cohortData.rds'))
+  saveRDS(simOutSpp$ecodistrict, file.path('outputs/paramData/', runName, 'ecodistrict.rds'))
+  saveRDS(simOutSpp$ecoregion, file.path('outputs/paramData/', runName, 'ecoregion.rds'))
+  saveRDS(simOutSpp$ecoregionMap, file.path('outputs/paramData/', runName, 'ecoregionMap.rds'))
+  saveRDS(simOutSpp$pixelGroupMap, file.path('outputs/paramData/', runName, 'pixelGroupMap.rds'))
+  saveRDS(simOutSpp$minRelativeB, file.path('outputs/paramData/', runName, 'minRelativeB.rds'))
+  saveRDS(simOutSpp$species, file.path('outputs/paramData/', runName, 'species.rds'))
+  saveRDS(simOutSpp$speciesLayers, file.path('outputs/paramData/', runName, 'speciesLayers.rds'))
+  saveRDS(simOutSpp$speciesEcoregion, file.path('outputs/paramData/', runName, 'speciesEcoregion.rds'))
+  saveRDS(simOutSpp$sufficientLight, file.path('outputs/paramData/', runName, 'sufficientLight.rds'))
+  saveRDS(simOutSpp$rawBiomassMap, file.path('outputs/paramData/', runName, 'rawBiomassMap.rds'))
+  saveRDS(simOutSpp$vegMap, file.path('outputs/paramData/', runName, 'vegMap.rds'))
+  saveRDS(simOutSpp$landscapeAttr, file.path('outputs/paramData/', runName, 'landscapeAttr.rds'))
+  saveRDS(simOutSpp$flammableMap, file.path('outputs/paramData/', runName, 'flammableMap.rds'))
+  saveRDS(simOutSpp$cellsByZone, file.path('outputs/paramData/', runName, 'cellsByZone.rds'))
+  saveRDS(simOutSpp$fireRegimePolys, file.path('outputs/paramData/', runName, 'fireRegimePolys.rds'))
+  saveRDS(simOutSpp$scfmRegimePars, file.path('outputs/paramData/', runName, 'scfmRegimePars.rds'))
+  saveRDS(simOutSpp$firePoints, file.path('outputs/paramData/', runName, 'firePoints.rds'))
+  saveRDS(simScfmDriver$scfmDriverPars, file.path('outputs/paramData/', runName, 'scfmDriverPars.rds'))
+  saveRDS(simOutSpp$fireRegimeRas, file.path('outputs/paramData/', runName, 'fireRegimeRas.rds'))
 }

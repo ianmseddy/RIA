@@ -75,10 +75,11 @@ parameters <- list(
 setPaths(cachePath =  file.path(getwd(), "cache"),
          modulePath = c(file.path(getwd(), "modules"), file.path("modules/scfm/modules")),
          inputPath = file.path(getwd(), "inputs"),
-         outputPath = file.path(getwd(),"outputs", outputDir))
+         outputPath = file.path(getwd(), outputDir))
 
 paths <- SpaDES.core::getPaths()
-if (readInputs){
+if (readInputs) {
+  rm(simScfmDriver, simOutSpp, scfmDriverObjs)
   objects <- list(
     "studyArea" = studyArea #always provide a SA
     , 'studyAreaPSP' = studyAreaPSP
@@ -87,8 +88,8 @@ if (readInputs){
     ,"sppColorVect" = sppColors
     ,"studyAreaLarge" = studyAreaLarge
     ,"rasterToMatchLarge" = rasterToMatchLarge   #always provide a RTM
-    , 'biomassMap' = readRDS('outputs/paramData/biomassMap.rds')
-    , 'cohortData' = readRDS('outputs/paramData/cohortData.rds')
+    , 'biomassMap' = readRDS(file.path('outputs/paramData/', runName, 'biomassMap.rds'))
+    , 'cohortData' = readRDS(file.path('outputs/paramData/', runName, 'cohortData.rds'))
     , 'cceArgs' = list(quote(CMI),
                        quote(ATA),
                        quote(CMInormal),
@@ -98,31 +99,33 @@ if (readInputs){
                        quote(ecoregionMap),
                        quote(currentBEC),
                        quote(BECkey))
-    , 'ecodistrict' = readRDS('outputs/paramData/ecodistrict.rds')
-    , 'ecoregion' = readRDS('outputs/paramData/ecoregion.rds')
-    , 'ecoregionMap' = readRDS('outputs/paramData/ecoregionMap.rds')
-    , 'pixelGroupMap' = readRDS('outputs/paramData/pixelGroupMap.rds')
-    , 'minRelativeB' = readRDS('outputs/paramData/minRelativeB.rds')
-    , 'species' = readRDS('outputs/paramData/species.rds')
-    , 'speciesLayers' = readRDS('outputs/paramData/speciesLayers.rds')
-    , 'speciesEcoregion' = readRDS('outputs/paramData/speciesEcoregion.rds')
-    , 'sufficientLight' = readRDS('outputs/paramData/sufficientLight.rds')
-    , 'rawBiomassMap' = readRDS('outputs/paramData/rawBiomassMap.rds')
-    , 'vegMap' = readRDS('outputs/paramData/vegMap.rds')
-    , 'landscapeAttr' = readRDS('outputs/paramData/landscapeAttr.rds')
-    , 'flammableMap' = readRDS('outputs/paramData/flammableMap.rds')
-    , 'cellsByZone'  = readRDS('outputs/paramData/cellsByZone.rds')
-    , 'fireRegimePolys' = readRDS('outputs/paramData/fireRegimePolys.rds')
-    , 'scfmRegimePars' = readRDS('outputs/paramData/scfmRegimePars.rds')
-    , 'firePoints' = readRDS('outputs/paramData/firePoints.rds')
-    , 'scfmDriverPars' = readRDS('outputs/paramData/scfmDriverPars.rds')
-    , 'fireRegimeRas' = readRDS('outputs/paramData/fireRegimeRas.rds')
+    , 'ecodistrict' = readRDS(file.path('outputs/paramData/', runName, 'ecodistrict.rds'))
+    , 'ecoregion' = readRDS(file.path('outputs/paramData/', runName, 'ecoregion.rds'))
+    , 'ecoregionMap' = readRDS(file.path('outputs/paramData/', runName, 'ecoregionMap.rds'))
+    , 'pixelGroupMap' = readRDS(file.path('outputs/paramData/', runName, 'pixelGroupMap.rds'))
+    , 'minRelativeB' = readRDS(file.path('outputs/paramData', runName, '/minRelativeB.rds'))
+    , 'species' = readRDS(file.path('outputs/paramData/', runName, 'species.rds'))
+    , 'speciesLayers' = readRDS(file.path('outputs/paramData/', runName, 'speciesLayers.rds'))
+    , 'speciesEcoregion' = readRDS(file.path('outputs/paramData/', runName, 'speciesEcoregion.rds'))
+    , 'sufficientLight' = readRDS(file.path('outputs/paramData/', runName, 'sufficientLight.rds'))
+    , 'rawBiomassMap' = readRDS(file.path('outputs/paramData/', runName, 'rawBiomassMap.rds'))
+    , 'vegMap' = readRDS(file.path('outputs/paramData/', runName, 'vegMap.rds'))
+    , 'landscapeAttr' = readRDS(file.path('outputs/paramData/', runName, 'landscapeAttr.rds'))
+    , 'flammableMap' = readRDS(file.path('outputs/paramData/', runName, 'flammableMap.rds'))
+    , 'cellsByZone'  = readRDS(file.path('outputs/paramData/', runName, 'cellsByZone.rds'))
+    , 'fireRegimePolys' = readRDS(file.path('outputs/paramData/', runName, 'fireRegimePolys.rds'))
+    , 'scfmRegimePars' = readRDS(file.path('outputs/paramData/', runName, 'scfmRegimePars.rds'))
+    , 'firePoints' = readRDS(file.path('outputs/paramData/', runName, 'firePoints.rds'))
+    , 'scfmDriverPars' = readRDS(file.path('outputs/paramData/', runName, 'scfmDriverPars.rds'))
+    , 'fireRegimeRas' = readRDS(file.path('outputs/paramData/', runName, 'fireRegimeRas.rds'))
     , 'ATAstack' = climObjs$ATAstack
     , 'CMIstack' = climObjs$CMIstack
     , 'CMInormal' = climObjs$CMInormal
   )
   rm(simOutSpp)
-  .gc()
+  rm(harvestFiles)
+  rm(speciesObjects)
+  amc::.gc()
 } else {
   objects <- list(
     "studyArea" = studyArea #always provide a SA
@@ -170,6 +173,7 @@ if (readInputs){
 
 
 opts <- options(
+
   "future.globals.maxSize" = 1000*1024^2,
   "LandR.assertions" = FALSE, #This will slow things down and stops due to sumB algos
   "LandR.verbose" = 1,
@@ -197,6 +201,7 @@ outputs = data.frame(objectName = rep(outputObjs, times = length(saveTimes)),
                      saveTime = rep(saveTimes, each = length(outputObjs)),
                      eventPriority = 10)
 outputs <- rbind(outputs, data.frame(objectName = c('summarySubCohortData', 'summaryBySpecies'), saveTime = times$end, eventPriority = 10))
+outputs <- rbind(outputs, data.frame(objectName = 'simulationOutput', saveTime = times$end, eventPriority = 10))
 
 thisRunTime <- Sys.time()
 amc::.gc()
@@ -208,6 +213,7 @@ if(!AM){
   paramsToUse <- noAMparameters
 }
 
+data.table::setDTthreads(2)
 mySim <- simInit(times = times, params = paramsToUse, modules = modules, objects = objects,
                  paths = paths, loadOrder = unlist(modules), outputs = outputs)
 amc::.gc()
