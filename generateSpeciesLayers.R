@@ -1,4 +1,3 @@
-library(SpaDES)
 library(raster)
 library(magrittr)
 ## -----------------------------------
@@ -98,6 +97,9 @@ speciesParameters <- list(
   )
 )
 
+# #don't do this forever
+# scfmDriverPars <- readRDS("speciesCache/cacheOutputs/8436b8e68eb7b6e5.rds")
+
 speciesObjects <- list(
   "sppEquiv" = sppEquivalencies_CA
   , "sppColorVect" = sppColors
@@ -109,11 +111,12 @@ speciesObjects <- list(
   , 'ecoregionLayer' = NULL
   , 'standAgeMap' = standAgeMap
   , 'fireRegimePolys' = fireRegimePolys
+  # , 'scfmDriverPars' = scfmDriverPars
 )
 
 
 speciesModules <- c('PSP_Clean', "Biomass_speciesData", 'Biomass_borealDataPrep', 'Biomass_speciesParameters',
-                    'scfmLandcoverInit', 'scfmRegime', 'scfmDriver')
+                    'scfmLandcoverInit', 'scfmRegime')
 
 simOutSpp <- Cache(simInitAndSpades
                    , times = list(start = times$start, end = times$start + 1)
@@ -126,3 +129,31 @@ simOutSpp <- Cache(simInitAndSpades
                    , loadOrder = unlist(speciesModules)
                    , userTags = "simOutSpp",
                    cacheRepo = speciesPaths$cachePath)
+scfmDriverObjs <- list(
+  'studyArea' = studyArea,
+  'fireRegimeRas' = simOutSpp$fireRegimeRas,
+  'fireRegimePolys' = simOutSpp$fireRegimePolys,
+  'scfmRegimePars' = simOutSpp$scfmRegimePars,
+  'landscapeAttr' = simOutSpp$landscapeAttr
+)
+
+scfmParams <- list(
+  scfmDriver = list(
+    targetN = 5000
+  )
+)
+scfmPaths <- speciesPaths
+scfmPaths$cachePath <- "scfmCache"
+simScfmDriver <- Cache(simInitAndSpades
+                       , times = list(start = times$start, end = times$start + 1)
+                       , params = scfmParams
+                       , modules = 'scfmDriver'
+                       , objects = scfmDriverObjs
+                       , paths = scfmPaths
+                       , debug = TRUE
+                       , .plotInitialTime = NA
+                       , loadOrder = unlist(speciesModules)
+                       , userTags = "scfmDriver",
+                       cacheRepo = scfmPaths$cachePath)
+
+rm(scfmParams, scfmDriverObjs)
