@@ -12,13 +12,20 @@ googledrive::drive_deauth()
 
 if (runName == '4TSAs'){
   TSAs <- c('16', '24', '40', '41')
-} else {
+} else if (runName == '5TSAs'){
   TSAs <- c('08', '16', '24', '40', '41')
+} else {
+  stop("typo in runName")
 }
 
 basenames <-paste0('tsa', TSAs)
 basenames <- as.list(basenames) #This must absolutely match whatever studyArea you are going to use for harvest
 source("generateHarvestInit.R")
+
+ageVals <- getValues(harvestFiles$landscape$age)
+ageValsRound <- 1 + round(ageVals/20, digits = 0) * 20
+setValues(harvestFiles$landscape$age, ageValsRound)
+plot(harvestFiles$landscape$age)
 
 rasterToMatch <- harvestFiles$landscape$age
 #Change the TSA to either Ft St John or Ft Nelson

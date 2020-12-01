@@ -28,21 +28,31 @@ speciesPaths <-list(cachePath = "speciesCache",
 source('generateSppEquiv.R')
 
 
-#Create function for updating sub-alpine fir longevity
+#Create function for updating sub-alpine fir longevity and reverting Betu_pap to 150 - this lowers it's maxB inflation
 firAgeUpdate <- function(sT) {
   sT[species == "Abie_las", longevity := 300]
+  sT[species == "Betu_pap", longevity := 150]
   return(sT)
+}
+
+minRelativeB_RIA <- function(pixelCohortData){
+  pixelData <- unique(pixelCohortData, by = "pixelIndex")
+  pixelData[, `:=`(ecoregionGroup, factor(as.character(ecoregionGroup)))]
+  minRelativeB <- data.frame(ecoregionGroup = as.factor(levels(pixelData$ecoregionGroup)),
+                             X1 = 0.10, X2 = 0.20, X3 = 0.45, X4 = 0.70, X5 = 0.80)
+  return(minRelativeB)
 }
 
 speciesParameters <- list(
   Biomass_speciesData = list(
     sppEquivCol = "RIA"
-    , .studyAreaName = studyAreaName
+    , .studyAreaName = runName
     , type = c("KNN", "CASFRI")
   )
   , Biomass_borealDataPrep = list(
     successionTimestep = 10
-    , .studyAreaName = studyAreaName
+    , .studyAreaName = runName
+    , minRelativeBFunction = quote(minRelativeB_RIA)
     , subsetDataBiomassModel = 50
     , pixelGroupAgeClass = 10
     , sppEquivCol = 'RIA'
