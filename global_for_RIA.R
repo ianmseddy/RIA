@@ -25,7 +25,7 @@ source("generateHarvestInit.R")
 ageVals <- getValues(harvestFiles$landscape$age)
 ageValsRound <- 1 + round(ageVals/20, digits = 0) * 20
 setValues(harvestFiles$landscape$age, ageValsRound)
-plot(harvestFiles$landscape$age)
+rm(ageVals, ageValsRound)# note the age map gets rounded in LandR anyway, but this way is consistent
 
 rasterToMatch <- harvestFiles$landscape$age
 #Change the TSA to either Ft St John or Ft Nelson
@@ -52,14 +52,10 @@ studyAreaLarge <- sf::st_buffer(studyAreaLarge, 0) %>%
   sf::st_as_sf(.)
 studyAreaLarge$studyArea <- runName
 studyAreaLarge <- sf::as_Spatial(studyAreaLarge)
-studyArea <- studyAreaLarge
-studyArea <- buffer(studyArea, 0)
 
 rasterToMatchLarge <- rasterToMatch
-studyArea <- spTransform(studyArea, CRS = crs(rasterToMatch))
 studyAreaLarge <- spTransform(studyAreaLarge, CRS = crs(rasterToMatchLarge))
-studyAreaName <- runName
-
+studyArea <- studyAreaLarge
 
 #For climate scenarios
 studyAreaPSP <- prepInputs(url = 'https://drive.google.com/open?id=10yhleaumhwa3hAv_8o7TE15lyesgkDV_',

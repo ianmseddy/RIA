@@ -39,7 +39,7 @@ minRelativeB_RIA <- function(pixelCohortData){
   pixelData <- unique(pixelCohortData, by = "pixelIndex")
   pixelData[, `:=`(ecoregionGroup, factor(as.character(ecoregionGroup)))]
   minRelativeB <- data.frame(ecoregionGroup = as.factor(levels(pixelData$ecoregionGroup)),
-                             X1 = 0.10, X2 = 0.20, X3 = 0.45, X4 = 0.70, X5 = 0.80)
+                             X1 = 0.15, X2 = 0.25, X3 = 0.35, X4 = 0.5, X5 = 0.75)
   return(minRelativeB)
 }
 
@@ -52,7 +52,7 @@ speciesParameters <- list(
   , Biomass_borealDataPrep = list(
     successionTimestep = 10
     , .studyAreaName = runName
-    , minRelativeBFunction = quote(minRelativeB_RIA)
+    , minRelativeBFunction = quote(minRelativeB_RIA(pixelCohortData))
     , subsetDataBiomassModel = 50
     , pixelGroupAgeClass = 10
     , sppEquivCol = 'RIA'
@@ -139,6 +139,9 @@ simOutSpp <- Cache(simInitAndSpades
                    , loadOrder = unlist(speciesModules)
                    , userTags = "simOutSpp",
                    cacheRepo = speciesPaths$cachePath)
+
+#SCFM Driver - moved this out because the driver is such a pain #
+
 scfmDriverObjs <- list(
   'studyArea' = studyArea,
   'fireRegimeRas' = simOutSpp$fireRegimeRas,

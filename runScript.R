@@ -2,7 +2,10 @@ library(SpaDES.core)
 library(reproducible)
 AM <- TRUE
 runName <- '5TSAs'
+
+#writeOutputs will write objects from parameterization to disk
 writeOutputs <- FALSE
+#readInputs will read parameterization objects from disk
 readInputs <- TRUE
 model <- 'CNRM CM5'
 scenario <- 'RCP4.5'
