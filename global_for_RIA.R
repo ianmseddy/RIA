@@ -24,8 +24,9 @@ source("generateHarvestInit.R")
 
 ageVals <- getValues(harvestFiles$landscape$age)
 ageValsRound <- 1 + round(ageVals/20, digits = 0) * 20
-setValues(harvestFiles$landscape$age, ageValsRound)
+harvestFiles <- setValues(harvestFiles$landscape$age, ageValsRound)
 rm(ageVals, ageValsRound)# note the age map gets rounded in LandR anyway, but this way is consistent
+standAgeMap <- harvestFiles$age
 
 rasterToMatch <- harvestFiles$landscape$age
 #Change the TSA to either Ft St John or Ft Nelson
@@ -74,7 +75,6 @@ ecoregionRst <- prepInputs(url = 'https://drive.google.com/open?id=1SJf9zQqBcznw
                           useCache = TRUE) #to preserve original filenames, workaround for now
 ecoregionRst <- ecoregionRst[[1]] #fix reproducible
 
-standAgeMap <- harvestFiles$landscape$age
 fireRegimePolys <- prepInputs(url = 'https://drive.google.com/file/d/1Fj6pNKC48qDndPE3d6IxR1dvLF2vLeWc/view?usp=sharing',
                               destinationPath = 'inputs',
                               rasterToMatch = rasterToMatch,
