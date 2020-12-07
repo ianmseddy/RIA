@@ -16,6 +16,16 @@ speciesPaths <-list(cachePath = "speciesCache",
                     inputPath = file.path("inputs"),
                     outputPath = file.path("outputs"))
 
+rstLCC2010 <- prepInputs(url = 'https://drive.google.com/file/d/1WcCEkwjnDq74fx3ZBizlIKzLkjW6Nfdf/view?usp=sharing',
+                     rasterToMatch = rasterToMatchLarge,
+                     studyArea = studyAreaLarge,
+                     destinationPath = speciesPaths$inputPath,
+                     filename2 = paste0("rstLCC_", runName, '.tif'),
+                     useCache = TRUE,
+                     userTags = c("rstLCC2010"))
+flammableMap <- LandR::defineFlammable(LandCoverClassifiedMap = rstLCC2010,
+                                       nonFlammClasses = c(13, 16, 17, 18, 19),
+                                       mask = rasterToMatchLarge)
 #get objects
 #This should use whatever is loaded in R instead of replacing it
 # studyArea <- shapefile("inputs/ftStJohn_studyArea.shp")
@@ -32,6 +42,9 @@ source('generateSppEquiv.R')
 firAgeUpdate <- function(sT) {
   sT[species == "Abie_las", longevity := 300]
   sT[species == "Betu_pap", longevity := 150]
+  sT[, shadetolerance := as.numeric(shadetolerance)]
+  sT[species == 'Pice_eng', shadetolerance := 2.5]
+  sT[species == 'Pice_mar', shadetolerance := 2.5]
   return(sT)
 }
 
@@ -39,7 +52,7 @@ minRelativeB_RIA <- function(pixelCohortData){
   pixelData <- unique(pixelCohortData, by = "pixelIndex")
   pixelData[, `:=`(ecoregionGroup, factor(as.character(ecoregionGroup)))]
   minRelativeB <- data.frame(ecoregionGroup = as.factor(levels(pixelData$ecoregionGroup)),
-                             X1 = 0.15, X2 = 0.25, X3 = 0.35, X4 = 0.5, X5 = 0.75)
+                             X1 = 0.13, X2 = 0.21, X3 = 0.29, X4 = 0.42, X5 = 0.65)
   return(minRelativeB)
 }
 
@@ -53,8 +66,11 @@ speciesParameters <- list(
     successionTimestep = 10
     , .studyAreaName = runName
     , minRelativeBFunction = quote(minRelativeB_RIA(pixelCohortData))
-    , subsetDataBiomassModel = 50
+    , subsetDataBiomassModel = 100
+    , forestedLCCClasses = c(1:6, 14, 99)
+    , LCCClassesToReplaceNN =  c(99)
     , pixelGroupAgeClass = 10
+    , pixelGroupBiomassClass = 500
     , sppEquivCol = 'RIA'
     , speciesUpdateFunction = list(
       quote(LandR::speciesTableUpdate(sim$species, sim$speciesTable, sim$sppEquiv, P(sim)$sppEquivCol)),
@@ -80,7 +96,7 @@ speciesParameters <- list(
       "Betu_pap" = c(0, 0.3),
       "Pice_eng" = c(0.3, .7),
       "Pice_gla" = c(0.3, .7),
-      "Pice_mar" = c(0.4, .6),
+      "Pice_mar" = c(0.4, 1),
       "Pinu_con" = c(0.3, .7),
       "Popu_tre" = c(0.4, 1)
     )
@@ -118,8 +134,10 @@ speciesObjects <- list(
   , 'rasterToMatch' = rasterToMatch
   , 'rasterToMatchLarge' = rasterToMatchLarge
   , 'ecoregionRst' = ecoregionRst
+  , 'rstLCC' = rstLCC2010
   , 'ecoregionLayer' = NULL
   , 'standAgeMap' = standAgeMap
+  , 'flammableMap' = flammableMap
   , 'fireRegimePolys' = fireRegimePolys
   # , 'scfmDriverPars' = scfmDriverPars
 )
@@ -128,17 +146,16 @@ speciesObjects <- list(
 speciesModules <- c('PSP_Clean', "Biomass_speciesData", 'Biomass_borealDataPrep', 'Biomass_speciesParameters',
                     'scfmLandcoverInit', 'scfmRegime')
 
-simOutSpp <- Cache(simInitAndSpades
-                   , times = list(start = times$start, end = times$start + 1)
-                   , params = speciesParameters
-                   , modules = speciesModules
-                   , objects = speciesObjects
-                   , paths = speciesPaths
-                   , debug = TRUE
-                   , .plotInitialTime = NA
-                   , loadOrder = unlist(speciesModules)
-                   , userTags = "simOutSpp",
-                   cacheRepo = speciesPaths$cachePath)
+simOutSpp <- simInitAndSpades(times = list(start = times$start, end = times$start + 1)
+                              , params = speciesParameters
+                              , modules = speciesModules
+                              , objects = speciesObjects
+                              , paths = speciesPaths
+                              , debug = TRUE
+                              , .plotInitialTime = NA
+                              , loadOrder = unlist(speciesModules))
+                   # , userTags = "simOutSpp",
+                   # cacheRepo = speciesPaths$cachePath)
 
 #SCFM Driver - moved this out because the driver is such a pain #
 
@@ -147,7 +164,8 @@ scfmDriverObjs <- list(
   'fireRegimeRas' = simOutSpp$fireRegimeRas,
   'fireRegimePolys' = simOutSpp$fireRegimePolys,
   'scfmRegimePars' = simOutSpp$scfmRegimePars,
-  'landscapeAttr' = simOutSpp$landscapeAttr
+  'landscapeAttr' = simOutSpp$landscapeAttr,
+  'flammableMap' = simOutSpp$flammableMap
 )
 
 scfmParams <- list(
@@ -168,5 +186,3 @@ simScfmDriver <- Cache(simInitAndSpades
                        , loadOrder = unlist(speciesModules)
                        , userTags = "scfmDriver",
                        cacheRepo = scfmPaths$cachePath)
-
-rm(scfmParams, scfmDriverObjs)
