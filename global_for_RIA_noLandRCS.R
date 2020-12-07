@@ -1,17 +1,44 @@
+#this is a stand-alone script when we only want to run LandR with harvest and fire, but no climate sensitivity or assisted migration
+
+
 library(reticulate)
-library(SpaDES)
+library(SpaDES.core)
 library(raster)
 library(sf)
 library(data.table)
 
 # devtools::install_github("PredictiveEcology/LandR@development")
 data.table::setDTthreads(2)
-#need LandR.CS
+
+runName <- '5TSAs'
+
+#writeOutputs will write objects from parameterization to disk
+writeOutputs <- FALSE
+#readInputs will read parameterization objects from disk
+readInputs <- TRUE
+
+outputDir <- file.path('outputs', runName, 'noLandRCS')
+
+
 # py_install('ws3', pip=TRUE, pip_options=c('--upgrade', '-e git+https://github.com/gparadis/ws3.git@dev#egg=ws3')) #To upgrade WS3
 googledrive::drive_deauth()
 
-basenames <- list("tsa40", 'tsa41', 'tsa16', 'tsa24', 'tsa08') #This must absolutely match whatever studyArea you are going to use for harvest
+if (runName == '4TSAs'){
+  TSAs <- c('16', '24', '40', '41')
+} else if (runName == '5TSAs'){
+  TSAs <- c('08', '16', '24', '40', '41')
+} else {
+  stop("typo in runName")
+}
+
+basenames <-paste0('tsa', TSAs)
+basenames <- as.list(basenames) #This must absolutely match whatever studyArea you are going to use for harvest
 source("generateHarvestInit.R")
+
+ageVals <- getValues(harvestFiles$landscape$age)
+ageValsRound <- 1 + round(ageVals/20, digits = 0) * 20
+setValues(harvestFiles$landscape$age, ageValsRound)
+rm(ageVals, ageValsRound)# note the age map gets rounded in LandR anyway, but this way is consistent
 
 rasterToMatch <- harvestFiles$landscape$age
 #Change the TSA to either Ft St John or Ft Nelson
@@ -27,7 +54,8 @@ studyAreaLarge <- prepInputs(url = 'https://drive.google.com/file/d/1YwkdFDuy00Z
                              useCache = TRUE,
                              FUN = 'sf::st_read') %>%
   sf::st_as_sf(.)
-studyAreaLarge <- studyAreaLarge[studyAreaLarge$TSA_NUMBER %in% c('08', '16', '24', '40', '41'),]
+
+studyAreaLarge <- studyAreaLarge[studyAreaLarge$TSA_NUMBER %in%TSAs,]
 if (length(unique(sf::st_geometry_type(studyAreaLarge))) > 1)  ## convert sfc to sf if needed
   sf::st_geometry(studyAreaLarge) <- sf::st_collection_extract(x = sf::st_geometry(studyAreaLarge), type = "POLYGON")
 
@@ -35,24 +63,14 @@ studyAreaLarge <- sf::st_buffer(studyAreaLarge, 0) %>%
   sf::as_Spatial(.) %>%
   raster::aggregate(.) %>%
   sf::st_as_sf(.)
-studyAreaLarge$studyArea <- "5TSA"
+studyAreaLarge$studyArea <- runName
 studyAreaLarge <- sf::as_Spatial(studyAreaLarge)
-studyArea <- studyAreaLarge
-studyArea <- buffer(studyArea, 0)
 
 rasterToMatchLarge <- rasterToMatch
-studyArea <- spTransform(studyArea, CRS = crs(rasterToMatch))
 studyAreaLarge <- spTransform(studyAreaLarge, CRS = crs(rasterToMatchLarge))
-studyAreaName <- 'FiveTSA'
-
+studyArea <- studyAreaLarge
 
 #For climate scenarios
-studyAreaPSP <- prepInputs(url = 'https://drive.google.com/open?id=10yhleaumhwa3hAv_8o7TE15lyesgkDV_',
-                          destinationPath = 'inputs',
-                          overwrite = TRUE,
-                          useCache = TRUE) %>%
-  spTransform(., CRSobj = crs(studyArea))
-
 ecoregionRst <- prepInputs(url = 'https://drive.google.com/open?id=1SJf9zQqBcznw5uByfRZ5ulk2ktfHia26',
                           destinationPath = 'inputs',
                           targetFile = 'reclassifiedBECs.grd',
@@ -74,9 +92,10 @@ fireRegimePolys <- prepInputs(url = 'https://drive.google.com/file/d/1Fj6pNKC48q
                               )
 
 times <- list(start = 2011, end = 2101)
+
 source('generateSppEquiv.R')
 source('generateSpeciesLayers.R')
-# source('sourceClimateData.R')
+
 times <- list(start = 2011, end = 2101) #this is so the cached genSpeciesLayers.R is returned
 # climObjs <- sourceClimData(scenario = scenario, model = model)
 
@@ -148,58 +167,78 @@ parameters <- list(
 
 ## Paths are not workign with multiple module paths yet
 
-  setPaths(cachePath =  file.path(getwd(), "cache"),
+setPaths(cachePath =  file.path(getwd(), "cache"),
            modulePath = c(file.path(getwd(), "modules"), file.path("modules/scfm/modules")),
            inputPath = file.path(getwd(), "inputs"),
            outputPath = file.path(getwd(),"outputs", outputDir))
 
-  paths <- SpaDES.core::getPaths()
+paths <- SpaDES.core::getPaths()
 
-objects <- list(
-  "studyArea" = studyArea #always provide a SA
-  , 'studyAreaPSP' = studyAreaPSP
-  ,"rasterToMatch" = rasterToMatch
-  ,"sppEquiv" = sppEquivalencies_CA
-  ,"sppColorVect" = sppColors
-  ,"studyAreaLarge" = studyAreaLarge
-  ,"rasterToMatchLarge" = rasterToMatchLarge   #always provide a RTM
-  ,"biomassMap" = simOutSpp$biomassMap
-  ,"cohortData" = simOutSpp$cohortData
-  #for climate
-  # , 'cceArgs' = list(quote(CMI),
-  #                    quote(ATA),
-  #                    quote(CMInormal),
-  #                    quote(mcsModel),
-  #                    quote(gcsModel),
-  #                    quote(transferTable),
-  #                    quote(ecoregionMap),
-  #                    quote(currentBEC),
-  #                    quote(BECkey))
-  ,"ecoDistrict" = simOutSpp$ecodistrict
-  ,"ecoregion" = simOutSpp$ecoregion
-  ,"ecoregionMap" = simOutSpp$ecoregionMap
-  ,"pixelGroupMap" = simOutSpp$pixelGroupMap
-  ,"minRelativeB" = simOutSpp$minRelativeB
-  ,"species" = simOutSpp$species
-  ,"speciesLayers" = simOutSpp$speciesLayers
-  ,"speciesEcoregion" = simOutSpp$speciesEcoregion
-  ,"sufficientLight" =simOutSpp$sufficientLight
-  ,"rawBiomassMap" = simOutSpp$rawBiomassMap
-  , 'vegMap' = simOutSpp$vegMap
-  , 'landscapeAttr' = simOutSpp$landscapeAttr
-  , 'flammableMap' = simOutSpp$flammableMap
-  , 'cellsByZone' = simOutSpp$cellsByZone
-  , 'fireRegimePolys' = fireRegimePolys
-  , 'scfmRegimePars' = simOutSpp$scfmRegimePars
-  , 'firePoints' = simOutSpp$firePoints
-  , 'scfmDriverPars' = simOutSpp$scfmDriverPars
-  , 'fireRegimeRas' = simOutSpp$fireRegimeRas
-  # , 'ATAstack' = climObjs$ATAstack
-  # , 'CMIstack' = climObjs$CMIstack
-  # , 'CMInormal' = climObjs$CMInormal
-)
+readInputs <- TRUE
+writeOutputs <- FALSE
+source("generateSpeciesLayers.R")
 
-
+if (readInputs){
+  objects <- list(
+    "studyArea" = studyArea #always provide a SA
+    ,"rasterToMatch" = rasterToMatch
+    ,"sppEquiv" = sppEquivalencies_CA
+    ,"sppColorVect" = sppColors
+    ,"studyAreaLarge" = studyAreaLarge
+    ,"rasterToMatchLarge" = rasterToMatchLarge   #always provide a RTM
+    , 'biomassMap' = readRDS(file.path('outputs/paramData/', runName, 'biomassMap.rds'))
+    , 'cohortData' = readRDS(file.path('outputs/paramData/', runName, 'cohortData.rds'))
+    , 'ecodistrict' = readRDS(file.path('outputs/paramData/', runName, 'ecodistrict.rds'))
+    , 'ecoregion' = readRDS(file.path('outputs/paramData/', runName, 'ecoregion.rds'))
+    , 'ecoregionMap' = readRDS(file.path('outputs/paramData/', runName, 'ecoregionMap.rds'))
+    , 'pixelGroupMap' = readRDS(file.path('outputs/paramData/', runName, 'pixelGroupMap.rds'))
+    , 'minRelativeB' = readRDS(file.path('outputs/paramData', runName, '/minRelativeB.rds'))
+    , 'species' = readRDS(file.path('outputs/paramData/', runName, 'species.rds'))
+    , 'speciesLayers' = readRDS(file.path('outputs/paramData/', runName, 'speciesLayers.rds'))
+    , 'speciesEcoregion' = readRDS(file.path('outputs/paramData/', runName, 'speciesEcoregion.rds'))
+    , 'sufficientLight' = readRDS(file.path('outputs/paramData/', runName, 'sufficientLight.rds'))
+    , 'rawBiomassMap' = readRDS(file.path('outputs/paramData/', runName, 'rawBiomassMap.rds'))
+    , 'vegMap' = readRDS(file.path('outputs/paramData/', runName, 'vegMap.rds'))
+    , 'landscapeAttr' = readRDS(file.path('outputs/paramData/', runName, 'landscapeAttr.rds'))
+    , 'flammableMap' = readRDS(file.path('outputs/paramData/', runName, 'flammableMap.rds'))
+    , 'cellsByZone'  = readRDS(file.path('outputs/paramData/', runName, 'cellsByZone.rds'))
+    , 'fireRegimePolys' = readRDS(file.path('outputs/paramData/', runName, 'fireRegimePolys.rds'))
+    , 'scfmRegimePars' = readRDS(file.path('outputs/paramData/', runName, 'scfmRegimePars.rds'))
+    , 'firePoints' = readRDS(file.path('outputs/paramData/', runName, 'firePoints.rds'))
+    , 'scfmDriverPars' = readRDS(file.path('outputs/paramData/', runName, 'scfmDriverPars.rds'))
+    , 'fireRegimeRas' = readRDS(file.path('outputs/paramData/', runName, 'fireRegimeRas.rds'))
+  )
+} else {
+  objects <- list(
+    "studyArea" = studyArea #always provide a SA
+    ,"rasterToMatch" = rasterToMatch
+    ,"sppEquiv" = sppEquivalencies_CA
+    ,"sppColorVect" = sppColors
+    ,"studyAreaLarge" = studyAreaLarge
+    ,"rasterToMatchLarge" = rasterToMatchLarge   #always provide a RTM
+    ,"biomassMap" = simOutSpp$biomassMap
+    ,"cohortData" = simOutSpp$cohortData
+    ,"ecoDistrict" = simOutSpp$ecodistrict
+    ,"ecoregion" = simOutSpp$ecoregion
+    ,"ecoregionMap" = simOutSpp$ecoregionMap
+    ,"pixelGroupMap" = simOutSpp$pixelGroupMap
+    ,"minRelativeB" = simOutSpp$minRelativeB
+    ,"species" = simOutSpp$species
+    ,"speciesLayers" = simOutSpp$speciesLayers
+    ,"speciesEcoregion" = simOutSpp$speciesEcoregion
+    ,"sufficientLight" =simOutSpp$sufficientLight
+    ,"rawBiomassMap" = simOutSpp$rawBiomassMap
+    , 'vegMap' = simOutSpp$vegMap
+    , 'landscapeAttr' = simOutSpp$landscapeAttr
+    , 'flammableMap' = simOutSpp$flammableMap
+    , 'cellsByZone' = simOutSpp$cellsByZone
+    , 'fireRegimePolys' = fireRegimePolys
+    , 'scfmRegimePars' = simOutSpp$scfmRegimePars
+    , 'firePoints' = simOutSpp$firePoints
+    , 'scfmDriverPars' = simScfmDriver$scfmDriverPars
+    , 'fireRegimeRas' = simOutSpp$fireRegimeRas
+  )
+}
 
 opts <- options(
   "future.globals.maxSize" = 1000*1024^2,
@@ -228,20 +267,12 @@ saveTimes <- rep(seq(times$start, times$end, 30))
 outputs = data.frame(objectName = rep(outputObjs, times = length(saveTimes)),
                      saveTime = rep(saveTimes, each = length(outputObjs)),
                      eventPriority = 10)
-outputs <- rbind(outputs, data.frame(objectName = c('summarySubCohortData', 'summaryBySpecies'), saveTime = times$end, eventPriority = 10))
+# outputs <- rbind(outputs, data.frame(objectName = c('summarySubCohortData', 'summaryBySpecies'), saveTime = times$end, eventPriority = 10))
 outputs <- rbind(outputs, data.frame(objectName = c("plantedCohorts"), saveTime = times$end, eventPriority = 10))
 
 thisRunTime <- Sys.time()
-amc::.gc()
-#figure out
-paramsToUse <- parameters
-noAMparameters <- parameters
-noAMparameters$assistedMigrationBC$doAssistedMigration <- FALSE
-if(!AM){
-  paramsToUse <- noAMparameters
-}
 
-mySim <- simInit(times = times, params = paramsToUse, modules = modules, objects = objects,
+mySim <- simInit(times = times, params = parameters, modules = modules, objects = objects,
                  paths = paths, loadOrder = unlist(modules), outputs = outputs)
 #
 amc::.gc()

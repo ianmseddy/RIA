@@ -122,7 +122,6 @@ if (readInputs) {
     , 'CMIstack' = climObjs$CMIstack
     , 'CMInormal' = climObjs$CMInormal
   )
-  rm(simOutSpp)
   rm(harvestFiles)
   rm(speciesObjects)
   amc::.gc()
@@ -146,7 +145,6 @@ if (readInputs) {
                        quote(ecoregionMap),
                        quote(currentBEC),
                        quote(BECkey))
-    ,"ecoDistrict" = simOutSpp$ecodistrict
     ,"ecoregion" = simOutSpp$ecoregion
     ,"ecoregionMap" = simOutSpp$ecoregionMap
     ,"pixelGroupMap" = simOutSpp$pixelGroupMap
