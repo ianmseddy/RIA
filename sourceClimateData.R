@@ -124,6 +124,34 @@ sourceClimData <- function(scenario, model = 'CCSM4'){
                              filename2 = 'inputs/RIA_1ArcMinute_CSIRO_mk3_45_CMI2011-2100.grd',
                              fun = 'raster::stack') #get the high quality stuff
     }
+  } else if (model == 'Access1') {
+    if (scenario == 'RCP4.5') {
+      ATAstack <- prepInputs(url = "https://drive.google.com/file/d/1dtlUsI_ZG1dj4b6hpSGqXGk80HhPTbWY/view?usp=sharing",
+                             targetFile = 'RIA_1ArcMin_Access1_RCP45_ATA2011-2100.grd',
+                             alsoExtract = 'RIA_1ArcMin_Access1_RCP45_ATA2011-2100.gri',
+                             destinationPath = 'inputs',
+                             filename2 = 'inputs/RIA_1ArcMinute_Access1_RCP45_ATA2011-2100.grd',
+                             fun = 'raster::stack')
+      CMIstack <- prepInputs(url = 'https://drive.google.com/file/d/1dtlUsI_ZG1dj4b6hpSGqXGk80HhPTbWY/view?usp=sharing',
+                             targetFile = 'RIA_1ArcMin_Access1_RCP45_CMI2011-2100.grd',
+                             alsoExtract = 'RIA_1ArcMin_Access1_RCP45_CMI2011-2100.gri',
+                             destinationPath = 'inputs',
+                             filename2 = 'inputs/RIA_1ArcMinute_Access1_RCP45_CMI2011-2100.grd',
+                             fun = 'raster::stack') #get the high quality stuff
+    } else {
+      ATAstack <- prepInputs(url = "https://drive.google.com/file/d/1p-tCr_N4wsspGsrbN0ukJ8P8OHEWkty5/view?usp=sharing",
+                             targetFile = 'RIA_1ArcMinute_Access1_RCP85_ATA2011-2100.grd',
+                             alsoExtract = 'RIA_1ArcMinute_Access1_RCP85_ATA2011-2100.gri',
+                             destinationPath = 'inputs',
+                             filename2 = 'inputs/RIA_1ArcMinute_Access1_RCP85_ATA2011-2100.grd',
+                             fun = 'raster::stack')
+      CMIstack <- prepInputs(url = 'https://drive.google.com/file/d/1p-tCr_N4wsspGsrbN0ukJ8P8OHEWkty5/view?usp=sharing',
+                             targetFile = 'RIA_1ArcMinute_Access1_RCP85_CMI2011-2100.grd',
+                             alsoExtract = 'RIA_1ArcMinute_Access1_RCP85_CMI2011-2100.gri',
+                             destinationPath = 'inputs',
+                             filename2 = 'inputs/RIA_1ArcMinute_Access1_RCP85_CMI2011-2100.grd',
+                             fun = 'raster::stack') #get the high quality stuff
+    }
   } else {
     stop("don't recognize Model")
   }

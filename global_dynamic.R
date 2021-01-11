@@ -76,10 +76,9 @@ setPaths(cachePath =  file.path(getwd(), "cache"),
          modulePath = c(file.path(getwd(), "modules"), file.path("modules/scfm/modules")),
          inputPath = file.path(getwd(), "inputs"),
          outputPath = file.path(getwd(), outputDir))
-
 paths <- SpaDES.core::getPaths()
+
 if (readInputs) {
-  rm(simScfmDriver, simOutSpp, scfmDriverObjs)
   objects <- list(
     "studyArea" = studyArea #always provide a SA
     , 'studyAreaPSP' = studyAreaPSP
@@ -123,7 +122,6 @@ if (readInputs) {
     , 'CMInormal' = climObjs$CMInormal
   )
   rm(harvestFiles)
-  rm(speciesObjects)
   amc::.gc()
 } else {
   objects <- list(
@@ -171,7 +169,6 @@ if (readInputs) {
 
 
 opts <- options(
-
   "future.globals.maxSize" = 1000*1024^2,
   "LandR.assertions" = FALSE, #This will slow things down and stops due to sumB algos
   "LandR.verbose" = 1,
@@ -201,18 +198,18 @@ outputs = data.frame(objectName = rep(outputObjs, times = length(saveTimes)),
 outputs <- rbind(outputs, data.frame(objectName = c('summarySubCohortData', 'summaryBySpecies'), saveTime = times$end, eventPriority = 10))
 outputs <- rbind(outputs, data.frame(objectName = 'simulationOutput', saveTime = times$end, eventPriority = 10))
 
+
+#run
 thisRunTime <- Sys.time()
 amc::.gc()
 #figure out
-paramsToUse <- parameters
-noAMparameters <- parameters
-noAMparameters$assistedMigrationBC$doAssistedMigration <- FALSE
+
 if(!AM){
-  paramsToUse <- noAMparameters
+  parameters$assistedMigrationBC$doAssistedMigration <- FALSE
 }
 
 data.table::setDTthreads(2)
-mySim <- simInit(times = times, params = paramsToUse, modules = modules, objects = objects,
+mySim <- simInit(times = times, params = parameters, modules = modules, objects = objects,
                  paths = paths, loadOrder = unlist(modules), outputs = outputs)
 amc::.gc()
 mySimOut <- spades(mySim, debug = TRUE)

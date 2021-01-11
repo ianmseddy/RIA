@@ -24,9 +24,9 @@ source("generateHarvestInit.R")
 
 ageVals <- getValues(harvestFiles$landscape$age)
 ageValsRound <- 1 + round(ageVals/20, digits = 0) * 20
-harvestFiles <- setValues(harvestFiles$landscape$age, ageValsRound)
+harvestFiles$landscape$age <- setValues(harvestFiles$landscape$age, ageValsRound)
 rm(ageVals, ageValsRound)# note the age map gets rounded in LandR anyway, but this way is consistent
-standAgeMap <- harvestFiles$age
+standAgeMap <- harvestFiles$landscape$age
 
 rasterToMatch <- harvestFiles$landscape$age
 #Change the TSA to either Ft St John or Ft Nelson
