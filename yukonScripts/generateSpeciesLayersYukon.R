@@ -1,4 +1,3 @@
-library(raster)
 library(magrittr)
 ## -----------------------------------
 ## LOAD/MAKE SPECIES LAYERS
@@ -36,12 +35,12 @@ flammableMap <- LandR::defineFlammable(LandCoverClassifiedMap = rstLCC2010,
 
 #get sppEquivalencies
 source('generateSppEquiv.R')
-sppEquivalencies_CA <- sppEquivalencies_CA[!RIA == 'Pice_eng'] #drop engelmann in Yukon
+sppEquivalencies_CA <- sppEquivalencies_CA[!RIA %in% c('Pice_eng', 'Betu_pap')] #drop engelmann in Yukon
 
 #Create function for updating sub-alpine fir longevity and reverting Betu_pap to 150 - this lowers it's maxB inflation
 firAgeUpdate <- function(sT) {
   sT[species == "Abie_las", longevity := 300]
-  sT[species == "Betu_pap", longevity := 150]
+  # sT[species == "Betu_pap", longevity := 150]
   sT[, shadetolerance := as.numeric(shadetolerance)]
   sT[species == 'Pice_eng', shadetolerance := 2.5]
   sT[species == 'Pice_mar', shadetolerance := 2.5]
@@ -74,17 +73,17 @@ speciesParameters <- list(
     , sppEquivCol = 'RIA'
     , speciesUpdateFunction = list(
       quote(LandR::speciesTableUpdate(sim$species, sim$speciesTable, sim$sppEquiv, P(sim)$sppEquivCol)),
-      quote(firAgeUpdate(sT = sim$species))
+      quote(firAgeUpdate(sT = sim$species)))
     ),
     gmcsDataPrep = list(
     GCM = 'CCSM4_RCP4.5'
-    , useHeight = TRUE)),
+    , useHeight = TRUE),
    Biomass_speciesParameters = list(
     sppEquivCol = 'RIA'
     , useHeight = FALSE
     , GAMMknots = list(
       "Abie_las" = 3,
-      "Betu_pap" = 3,
+      # "Betu_pap" = 3,
       # "Pice_eng" = 4,
       "Pice_gla" = 3,
       "Pice_mar" = 4,
@@ -93,7 +92,7 @@ speciesParameters <- list(
     )
     , constrainGrowthCurve = list(
       "Abie_las" = c(0.3, .7),
-      "Betu_pap" = c(0, 0.3),
+      # "Betu_pap" = c(0, 0.3),
       # "Pice_eng" = c(0.3, .7),
       "Pice_gla" = c(0.3, .7),
       "Pice_mar" = c(0.4, 1),
@@ -102,7 +101,7 @@ speciesParameters <- list(
     )
     , constrainMortalityShape = list(
       "Abie_las" = c(15, 25),
-      "Betu_pap" = c(15, 20),
+      # "Betu_pap" = c(15, 20),
       # "Pice_eng" = c(15, 25),
       "Pice_gla" = c(15, 25),
       "Pice_mar" = c(15, 25),
@@ -111,15 +110,15 @@ speciesParameters <- list(
     )
     , quantileAgeSubset = list(
       "Abie_las" = 95, #N = 250 ''
-      "Betu_pap" = 95, #N = 96
+      # "Betu_pap" = 95, #N = 96
       # "Pice_eng" = 95, #N = 130
       "Pice_gla" = 95, #N = 1849
       "Pice_mar" = 95, #N = 785
       "Pinu_con" = 97, # N = 3172, 99 not an improvement. Maybe 97
       "Popu_tre" = 99 # N = 1997, trying 99
       )),
-  scfmDriver = list(
-    targetN = 5000
+  scfmLandcoverInit = list(
+    sliverThreshold = 1e9 #1000 km2
   )
 )
 
@@ -130,13 +129,10 @@ speciesObjects <- list(
   , 'studyArea' = studyArea
   , 'rasterToMatch' = rasterToMatch
   , 'rasterToMatchLarge' = rasterToMatchLarge
-  # , 'ecoregionRst' = ecoregionRst #no need for ecoregionRst (formerly BECs)
   , 'rstLCC' = rstLCC2010
   , 'vegMap' = rstLCC2010
-  , 'ecoregionLayer' = NULL
-  # , 'standAgeMap' = standAgeMap #no need for stand age map with Yukon (unless you want knn2010)
   , 'flammableMap' = flammableMap
-  # , 'scfmDriverPars' = scfmDriverPars
+  , 'fireRegimePolys' = fireRegimePolys
 )
 
 

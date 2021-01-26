@@ -26,7 +26,8 @@ setPaths(inputPath = "inputs/Yukon",
          cachePath = "cache/Yukon")
 paths <- getPaths()
 
-#What is the study area in the Yukon?
+
+#there is a script showing how Yukon study area was made - involves GIS cleaning
 studyArea <- shapefile("inputs/Yukon/studyAreaYukon.shp")
 studyAreaLarge <- studyArea
 #We will use BC Albers for the study area because it should result in seamless borders..
@@ -48,6 +49,25 @@ studyAreaPSP <- prepInputs(url = 'https://drive.google.com/open?id=10yhleaumhwa3
 
 times <- list(start = 2011, end = 2101)
 
+#Yukon will use a custom fireRegimePolys due to large areas with no fire
+#ecoregions 9 and 10 are combined, along with 5, 6, and 11. The latter have
+#almost no fires, the former have a combined 150 (with few large ones)
+#after accounting for slivers < 100 km2, we are left with 8 areas
+fireRegimePolys <- prepInputs(url = 'http://sis.agr.gc.ca/cansis/nsdb/ecostrat/region/ecoregion_shp.zip',
+                                  destinationPath = paths$inputPath,
+                                  studyArea = studyArea,
+                                  rasterToMatch = rasterToMatch,
+                                  filename2 = NULL,
+                                  userTags = c("fireRegimePolys"))
+fireRegimePolys$newID <- 1:length(fireRegimePolys)
+fireRegimePolys <- sf::st_as_sf(fireRegimePolys)
+fireRegimePolys[fireRegimePolys$REGION_ID %in% c(54, 60),]$newID <- 20
+fireRegimePolys[fireRegimePolys$REGION_ID %in% c(46, 47, 63),]$newID <- 19
+fireRegimePolys <- sf::as_Spatial(fireRegimePolys)
+fireRegimePolys <- rgeos::gUnaryUnion(spgeom = fireRegimePolys, id = fireRegimePolys$newID)
+fireRegimePolys$fireRegime <- row.names(fireRegimePolys)
+#in case we ever need it
+# rgdal::writeOGR(fireRegimePolys, dsn = paths$inputPath, layer = 'modifiedFireRegimePolys', driver = "ESRI Shapefile")
 
 if (writeOutputs) {
   #dont' worry that gmcs is run without climate data, we will supply it later
