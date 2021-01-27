@@ -13,7 +13,8 @@ readInputs <- TRUE
 model <- 'CCSM4'
 scenario <- 'RCP8.5'
 rep <- 1
-outputDir <- file.path('outputs', runName, paste0(model, '-', scenario), paste0(model, repName))
+outputDir <- file.path('outputs', runName, paste0(model, '-', scenario), paste0(model, rep))
+#with AM project, include repName (AMstatus  + repName)
 
 # devtools::install_github("PredictiveEcology/LandR@development")
 data.table::setDTthreads(2)
@@ -103,15 +104,11 @@ climObjs <- sourceClimDataYukon(scenario = scenario, model = model)
 
 # times <- list(start = 2011, end = 2021)
 spadesModulesDirectory <- c(file.path("modules"), 'modules/scfm') # where modules are
-modules <- list('spades_ws3_dataInit', 'spades_ws3','spades_ws3_landrAge',
-                "PSP_Clean", 'gmcsDataPrep', 'Biomass_core', 'Biomass_regeneration',
-                'LandR_reforestation', 'assistedMigrationBC',
+modules <- list("PSP_Clean", 'gmcsDataPrep', 'Biomass_core', 'Biomass_regeneration',
+                # 'LandR_reforestation', 'assistedMigrationBC',
                 "scfmIgnition", "scfmEscape", "scfmSpread")
 
 parameters <- list(
-  Biomass_speciesData = list(
-    sppEquivCol = "RIA",
-    type = c("KNN", "CASFRI")),
   Biomass_core = list(
     .plotInitialTime = NA
     , .plotInterval = 10
@@ -125,43 +122,45 @@ parameters <- list(
     , plotOverstory = TRUE
     , growthAndMortalityDrivers = "LandR.CS"
     , vegLeadingProportion = 0
-    , keepClimateCols = TRUE #Try this
+    , keepClimateCols = TRUE #
     , minCohortBiomass = 5
-    , cohortDefinitionCols = c('pixelGroup', 'speciesCode', 'age', 'Provenance', 'planted')),
+    # , cohortDefinitionCols = c('pixelGroup', 'speciesCode', 'age', 'Provenance', 'planted') # no AM
+    ),
   Biomass_regeneration = list(
     fireInitialTime = times$start + 1,
     fireTimestep = 1,
-    successionTimestep = 10,
-    cohortDefinitionCols = c('pixelGroup', 'speciesCode', 'age', 'Provenance', 'planted')),
-  assistedMigrationBC = list(
-    doAssistedMigration = TRUE
-    , sppEquivCol = 'RIA'
-    , trackPlanting = TRUE),
-  LandR_reforestation = list(
-    cohortDefinitionCols = c('pixelGroup', 'speciesCode', 'age', 'Provenance', 'planted'),
-    trackPlanting = TRUE),
+    successionTimestep = 10
+    # cohortDefinitionCols = c('pixelGroup', 'speciesCode', 'age', 'Provenance', 'planted')
+    ),
+  # assistedMigrationBC = list(
+  #   doAssistedMigration = TRUE
+  #   , sppEquivCol = 'RIA'
+  #   , trackPlanting = TRUE),
+  # LandR_reforestation = list(
+  #   cohortDefinitionCols = c('pixelGroup', 'speciesCode', 'age', 'Provenance', 'planted'),
+  #   trackPlanting = TRUE),
   gmcsDataPrep = list(
-    useHeight = TRUE
+    useHeight = TRUE #guarantee the same climate model as BC
     # , GCM = 'CCSM4_RCP4.5'
   ),
-  spades_ws3 = list(
-    basenames = basenames,
-    tifPath = 'tif',
-    base.year = 2015,
-    scheduler.mode = 'areacontrol',
-    horizon = 1,
-    target.masks = as.list(paste(basenames, "1 ? ?")), # TSA-wise THLB
-    target.scalefactors = as.list(rep(1, length(basenames)))), #originally 0.8
-  spades_ws3_dataInit = list(
-    basenames = basenames,
-    tifPath = 'tif',
-    base.year = 2015,
-    hdtPath = 'hdt',
-    hdtPrefix = 'hdt_'),
-  spades_ws3_landrAge = list(
-    basenames = basenames,
-    tifPath = 'tif',
-    base.year = 2015),
+  # spades_ws3 = list(
+  #   basenames = basenames,
+  #   tifPath = 'tif',
+  #   base.year = 2015,
+  #   scheduler.mode = 'areacontrol',
+  #   horizon = 1,
+  #   target.masks = as.list(paste(basenames, "1 ? ?")), # TSA-wise THLB
+  #   target.scalefactors = as.list(rep(1, length(basenames)))), #originally 0.8
+  # spades_ws3_dataInit = list(
+  #   basenames = basenames,
+  #   tifPath = 'tif',
+  #   base.year = 2015,
+  #   hdtPath = 'hdt',
+  #   hdtPrefix = 'hdt_'),
+  # spades_ws3_landrAge = list(
+  #   basenames = basenames,
+  #   tifPath = 'tif',
+  #   base.year = 2015),
   scfmSpread = list(
     .plotInitialTime = NA,
     .plotInterval = NA
@@ -178,7 +177,7 @@ paths <- SpaDES.core::getPaths()
 
 if (readInputs) {
   objects <- list(
-    "studyArea" = studyArea #always provide a SA
+    "studyArea" = studyArea
     , 'studyAreaPSP' = studyAreaPSP
     ,"rasterToMatch" = rasterToMatch
     ,"sppEquiv" = sppEquivalencies_CA
@@ -187,15 +186,15 @@ if (readInputs) {
     ,"rasterToMatchLarge" = rasterToMatchLarge   #always provide a RTM
     , 'biomassMap' = readRDS(file.path('outputs/paramData/', runName, 'biomassMap.rds'))
     , 'cohortData' = readRDS(file.path('outputs/paramData/', runName, 'cohortData.rds'))
-    , 'cceArgs' = list(quote(CMI),
-                       quote(ATA),
-                       quote(CMInormal),
-                       quote(mcsModel),
-                       quote(gcsModel),
-                       quote(transferTable),
-                       quote(ecoregionMap),
-                       quote(currentBEC),
-                       quote(BECkey))
+    # , 'cceArgs' = list(quote(CMI),
+    #                    quote(ATA),
+    #                    quote(CMInormal),
+    #                    quote(mcsModel),
+    #                    quote(gcsModel),
+    #                    quote(transferTable),
+    #                    quote(ecoregionMap),
+    #                    quote(currentBEC),
+    #                    quote(BECkey))
     , 'ecodistrict' = readRDS(file.path('outputs/paramData/', runName, 'ecodistrict.rds'))
     , 'ecoregion' = readRDS(file.path('outputs/paramData/', runName, 'ecoregion.rds'))
     , 'ecoregionMap' = readRDS(file.path('outputs/paramData/', runName, 'ecoregionMap.rds'))
@@ -219,9 +218,9 @@ if (readInputs) {
     , 'CMIstack' = climObjs$CMIstack
     , 'CMInormal' = climObjs$CMInormal
   )
-  rm(harvestFiles)
   amc::.gc()
 } else {
+  #this will add about 20 GB of RAM... might be possible with Yukon
   objects <- list(
     "studyArea" = studyArea #always provide a SA
     , 'studyAreaPSP' = studyAreaPSP
@@ -257,14 +256,17 @@ if (readInputs) {
     , 'fireRegimePolys' = fireRegimePolys
     , 'scfmRegimePars' = simOutSpp$scfmRegimePars
     , 'firePoints' = simOutSpp$firePoints
-    , 'scfmDriverPars' = simOutSpp$scfmDriverPars
+    , 'scfmDriverPars' = simScfmDriver$scfmDriverPars
     , 'fireRegimeRas' = simOutSpp$fireRegimeRas
     , 'ATAstack' = climObjs$ATAstack
     , 'CMIstack' = climObjs$CMIstack
     , 'CMInormal' = climObjs$CMInormal
   )
+  rm(simScfmDriver)
+  rm(simOutSpp)
+  rm(scfmDriverObjs)
+  rm(speciesObjects)
 }
-
 
 opts <- options(
   "future.globals.maxSize" = 1000*1024^2,
@@ -286,14 +288,15 @@ opts <- options(
 
 outputObjs = c('cohortData',
                'pixelGroupMap',
-               'burnMap',
-               'harvestPixelHistory')
+               'burnMap')
 saveTimes <- rep(seq(times$start, times$end, 30))
 
 outputs = data.frame(objectName = rep(outputObjs, times = length(saveTimes)),
                      saveTime = rep(saveTimes, each = length(outputObjs)),
                      eventPriority = 10)
-outputs <- rbind(outputs, data.frame(objectName = c('summarySubCohortData', 'summaryBySpecies'), saveTime = times$end, eventPriority = 10))
+#contains info on leading spp, only need once
+outputs <- rbind(outputs, data.frame(objectName = c('summaryBySpecies'), saveTime = times$end, eventPriority = 10))
+#contains results by ecoregion (not that important with no BECs..)
 outputs <- rbind(outputs, data.frame(objectName = 'simulationOutput', saveTime = times$end, eventPriority = 10))
 
 
@@ -301,10 +304,6 @@ outputs <- rbind(outputs, data.frame(objectName = 'simulationOutput', saveTime =
 thisRunTime <- Sys.time()
 amc::.gc()
 #figure out
-
-if(!AM){
-  parameters$assistedMigrationBC$doAssistedMigration <- FALSE
-}
 
 data.table::setDTthreads(2)
 mySim <- simInit(times = times, params = parameters, modules = modules, objects = objects,
