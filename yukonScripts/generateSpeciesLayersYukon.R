@@ -34,9 +34,6 @@ flammableMap <- LandR::defineFlammable(LandCoverClassifiedMap = rstLCC2010,
 #   spTransform(., crs(rasterToMatch))
 
 #get sppEquivalencies
-source('generateSppEquiv.R')
-sppEquivalencies_CA <- sppEquivalencies_CA[!RIA %in% c('Pice_eng', 'Betu_pap')] #drop engelmann in Yukon
-
 #Create function for updating sub-alpine fir longevity and reverting Betu_pap to 150 - this lowers it's maxB inflation
 firAgeUpdate <- function(sT) {
   sT[species == "Abie_las", longevity := 300]
@@ -139,14 +136,14 @@ speciesObjects <- list(
 speciesModules <- c('PSP_Clean', "Biomass_speciesData", 'Biomass_borealDataPrep', 'Biomass_speciesParameters',
                     'scfmLandcoverInit', 'scfmRegime')
 
-simOutSpp <- simInitAndSpades(times = list(start = times$start, end = times$start + 1)
-                              , params = speciesParameters
-                              , modules = speciesModules
-                              , objects = speciesObjects
-                              , paths = speciesPaths
-                              , debug = TRUE
-                              , .plotInitialTime = NA
-                              , loadOrder = unlist(speciesModules)
+simOutSpp <- Cache(simInitAndSpades, times = list(start = times$start, end = times$start + 1)
+                   , params = speciesParameters
+                   , modules = speciesModules
+                   , objects = speciesObjects
+                   , paths = speciesPaths
+                   , debug = TRUE
+                   , .plotInitialTime = NA
+                   , loadOrder = unlist(speciesModules)
                    , userTags = "simOutSpp",
                    cacheRepo = speciesPaths$cachePath)
 

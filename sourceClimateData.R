@@ -195,19 +195,49 @@ sourceClimDataYukon <- function(scenario, model = 'CCSM4'){
                              fun = 'raster::brick') #get the high quality stuff
 
     } else if (scenario == "RCP4.5") {
-      # ATAstack <- prepInputs(url = "https://drive.google.com/open?id=1jNDWarev57Az2Z1j2doJp5C9nGyZ6Tmc",
-      #                        targetFile = 'RIA_1ArcMinute_CCSM4_RCP45_ATA2011-2100.grd',
-      #                        alsoExtract = 'RIA_1ArcMinute_CCSM4_RCP45_ATA2011-2100.gri',
-      #                        destinationPath = 'inputs',
-      #                        filename2 = 'inputs/RIA_1ArcMinute_CCSM4_45_ATA2011-2100.grd',
-      #                        fun = 'raster::stack')
-      # CMIstack <- prepInputs(url = 'https://drive.google.com/open?id=1jNDWarev57Az2Z1j2doJp5C9nGyZ6Tmc',
-      #                        targetFile = 'RIA_1ArcMinute_CCSM4_RCP45_CMI2011-2100.grd',
-      #                        alsoExtract = 'RIA_1ArcMinute_CCSM4_RCP45_CMI2011-2100.gri',
-      #                        destinationPath = 'inputs',
-      #                        filename2 = 'inputs/RIA_1ArcMinute_CCSM4_45_CMI2011-2100.grd',
-      #                        fun = 'raster::stack') #get the high quality stuff
+      ATAstack <- prepInputs(url = "https://drive.google.com/file/d/1Bd4O_EIkeU2Y-RjWhCUkkYGoe-dgAvU2/view?usp=sharing",
+                             targetFile = 'Yukon_1ArcMinute_CCSM4_RCP45_ATA2011-2100.grd',
+                             alsoExtract = 'Yukon_1ArcMinute_CCSM4_RCP45_ATA2011-2100.gri',
+                             destinationPath = 'inputs',
+                             filename2 = 'inputs/Yukon_1ArcMinute_CCSM4_45_ATA2011-2100.grd',
+                             fun = 'raster::stack')
+      CMIstack <- prepInputs(url = 'https://drive.google.com/file/d/1Bd4O_EIkeU2Y-RjWhCUkkYGoe-dgAvU2/view?usp=sharing',
+                             targetFile = 'Yukon_1ArcMinute_CCSM4_RCP45_CMI2011-2100.grd',
+                             alsoExtract = 'Yukon_1ArcMinute_CCSM4_RCP45_CMI2011-2100.gri',
+                             destinationPath = 'inputs',
+                             filename2 = 'inputs/Yukon_1ArcMinute_CCSM4_45_CMI2011-2100.grd',
+                             fun = 'raster::stack') #get the high quality stuff
     }
+
+   # } if (model == "INM-CM4") {
+     # if (scenario == "RCP8.5") {
+     #   ATAstack <- prepInputs(url = "https://drive.google.com/file/d/14ZtIzThyinEX-DayV_NQV3Q4TlVKtXU8/view?usp=sharing",
+     #                          targetFile = 'Yukon_1ArcMinute_CCSM4_RCP85_ATA2011-2100.grd',
+     #                          alsoExtract = 'Yukon_1ArcMinute_CCSM4_RCP85_ATA2011-2100.gri',
+     #                          destinationPath = 'inputs',
+     #                          filename2 = 'inputs/Yukon/Yukon_1ArcMinute_CCSM4_RCP85_ATA2011-2100.grd',
+     #                          fun = 'raster::brick')
+     #   CMIstack <- prepInputs(url = 'https://drive.google.com/file/d/14ZtIzThyinEX-DayV_NQV3Q4TlVKtXU8/view?usp=sharing',
+     #                          targetFile = 'Yukon_1ArcMinute_CCSM4_RCP85_CMI2011-2100.grd',
+     #                          alsoExtract = 'Yukon_1ArcMinute_CCSM4_RCP85_CMI2011-2100.gri',
+     #                          destinationPath = 'inputs',
+     #                          filename2 = 'inputs/Yukon/Yukon_1ArcMinute_CCSM4_RCP85_CMI2011-2100.grd',
+     #                          fun = 'raster::brick') #get the high quality stuff
+     #
+     # } else if (scenario == "RCP4.5") {
+     #   ATAstack <- prepInputs(url = "https://drive.google.com/file/d/1Bd4O_EIkeU2Y-RjWhCUkkYGoe-dgAvU2/view?usp=sharing",
+     #                          targetFile = 'Yukon_1ArcMinute_CCSM4_RCP45_ATA2011-2100.grd',
+     #                          alsoExtract = 'Yukon_1ArcMinute_CCSM4_RCP45_ATA2011-2100.gri',
+     #                          destinationPath = 'inputs',
+     #                          filename2 = 'inputs/Yukon_1ArcMinute_CCSM4_45_ATA2011-2100.grd',
+     #                          fun = 'raster::stack')
+     #   CMIstack <- prepInputs(url = 'https://drive.google.com/file/d/1Bd4O_EIkeU2Y-RjWhCUkkYGoe-dgAvU2/view?usp=sharing',
+     #                          targetFile = 'Yukon_1ArcMinute_CCSM4_RCP45_CMI2011-2100.grd',
+     #                          alsoExtract = 'Yukon_1ArcMinute_CCSM4_RCP45_CMI2011-2100.gri',
+     #                          destinationPath = 'inputs',
+     #                          filename2 = 'inputs/Yukon_1ArcMinute_CCSM4_45_CMI2011-2100.grd',
+     #                          fun = 'raster::stack') #get the high quality stuff
+     # }
 
    }# else if (model == 'CanESM2') {
   #   if (scenario == "RCP8.5") {
@@ -293,39 +323,39 @@ sourceClimDataYukon <- function(scenario, model = 'CCSM4'){
   #                            alsoExtract = 'RIA_1ArcMinute_CSIRO_mk3_CMI2011-2100.gri',
   #                            destinationPath = 'inputs',
   #                            filename2 = 'inputs/RIA_1ArcMinute_CSIRO_mk3_45_CMI2011-2100.grd',
-  #                            fun = 'raster::stack') #get the high quality stuff
-  #   }
-  # } else if (model == 'Access1') {
-  #   if (scenario == 'RCP4.5') {
-  #     ATAstack <- prepInputs(url = "https://drive.google.com/file/d/1dtlUsI_ZG1dj4b6hpSGqXGk80HhPTbWY/view?usp=sharing",
-  #                            targetFile = 'RIA_1ArcMin_Access1_RCP45_ATA2011-2100.grd',
-  #                            alsoExtract = 'RIA_1ArcMin_Access1_RCP45_ATA2011-2100.gri',
-  #                            destinationPath = 'inputs',
-  #                            filename2 = 'inputs/RIA_1ArcMinute_Access1_RCP45_ATA2011-2100.grd',
   #                            fun = 'raster::stack')
-  #     CMIstack <- prepInputs(url = 'https://drive.google.com/file/d/1dtlUsI_ZG1dj4b6hpSGqXGk80HhPTbWY/view?usp=sharing',
-  #                            targetFile = 'RIA_1ArcMin_Access1_RCP45_CMI2011-2100.grd',
-  #                            alsoExtract = 'RIA_1ArcMin_Access1_RCP45_CMI2011-2100.gri',
-  #                            destinationPath = 'inputs',
-  #                            filename2 = 'inputs/RIA_1ArcMinute_Access1_RCP45_CMI2011-2100.grd',
-  #                            fun = 'raster::stack') #get the high quality stuff
-  #   } else {
-  #     ATAstack <- prepInputs(url = "https://drive.google.com/file/d/1p-tCr_N4wsspGsrbN0ukJ8P8OHEWkty5/view?usp=sharing",
-  #                            targetFile = 'RIA_1ArcMinute_Access1_RCP85_ATA2011-2100.grd',
-  #                            alsoExtract = 'RIA_1ArcMinute_Access1_RCP85_ATA2011-2100.gri',
-  #                            destinationPath = 'inputs',
-  #                            filename2 = 'inputs/RIA_1ArcMinute_Access1_RCP85_ATA2011-2100.grd',
-  #                            fun = 'raster::stack')
-  #     CMIstack <- prepInputs(url = 'https://drive.google.com/file/d/1p-tCr_N4wsspGsrbN0ukJ8P8OHEWkty5/view?usp=sharing',
-  #                            targetFile = 'RIA_1ArcMinute_Access1_RCP85_CMI2011-2100.grd',
-  #                            alsoExtract = 'RIA_1ArcMinute_Access1_RCP85_CMI2011-2100.gri',
-  #                            destinationPath = 'inputs',
-  #                            filename2 = 'inputs/RIA_1ArcMinute_Access1_RCP85_CMI2011-2100.grd',
-  #                            fun = 'raster::stack') #get the high quality stuff
   #   }
-  # } else {
-  #   stop("don't recognize Model")
-  # }
+  } else if (model == 'Access1') {
+    if (scenario == 'RCP4.5') {
+      ATAstack <- prepInputs(url = "https://drive.google.com/file/d/1KRuupXCAWuh-R7-nWlc5nez45Kf8IjK_/view?usp=sharing",
+                             targetFile = 'Yukon_1ArcMinute_Access1_RCP45_ATA2011-2100.grd',
+                             alsoExtract = 'Yukon_1ArcMinute_Access1_RCP45_ATA2011-2100.gri',
+                             destinationPath = 'inputs',
+                             filename2 = 'inputs/Yukon_1ArcMinute_Access1_RCP45_ATA2011-2100.grd',
+                             fun = 'raster::stack')
+      CMIstack <- prepInputs(url = 'https://drive.google.com/file/d/1KRuupXCAWuh-R7-nWlc5nez45Kf8IjK_/view?usp=sharing',
+                             targetFile = 'Yukon_1ArcMinute_Access1_RCP45_CMI2011-2100.grd',
+                             alsoExtract = 'Yukon_1ArcMinute_Access1_RCP45_CMI2011-2100.gri',
+                             destinationPath = 'inputs',
+                             filename2 = 'inputs/Yukon_1ArcMinute_Access1_RCP45_CMI2011-2100.grd',
+                             fun = 'raster::stack')
+    } else {
+      ATAstack <- prepInputs(url = "https://drive.google.com/file/d/1p-tCr_N4wsspGsrbN0ukJ8P8OHEWkty5/view?usp=sharing",
+                             targetFile = 'RIA_1ArcMinute_Access1_RCP85_ATA2011-2100.grd',
+                             alsoExtract = 'RIA_1ArcMinute_Access1_RCP85_ATA2011-2100.gri',
+                             destinationPath = 'inputs',
+                             filename2 = 'inputs/RIA_1ArcMinute_Access1_RCP85_ATA2011-2100.grd',
+                             fun = 'raster::stack')
+      CMIstack <- prepInputs(url = 'https://drive.google.com/file/d/1p-tCr_N4wsspGsrbN0ukJ8P8OHEWkty5/view?usp=sharing',
+                             targetFile = 'RIA_1ArcMinute_Access1_RCP85_CMI2011-2100.grd',
+                             alsoExtract = 'RIA_1ArcMinute_Access1_RCP85_CMI2011-2100.gri',
+                             destinationPath = 'inputs',
+                             filename2 = 'inputs/RIA_1ArcMinute_Access1_RCP85_CMI2011-2100.grd',
+                             fun = 'raster::stack') #get the high quality stuff
+    }
+  } else {
+    stop("don't recognize Model")
+  }
 
   climData = list(ATAstack = ATAstack,
                   CMIstack = CMIstack,
