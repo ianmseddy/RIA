@@ -15,29 +15,23 @@ speciesPaths <-list(cachePath = file.path("cache", runName, 'speciesCache'),
                     inputPath = file.path("inputs", runName),
                     outputPath = file.path("outputs", runName))
 
-rstLCC2010 <- prepInputs(url = 'https://drive.google.com/file/d/1WcCEkwjnDq74fx3ZBizlIKzLkjW6Nfdf/view?usp=sharing',
-                     rasterToMatch = rasterToMatchLarge,
-                     studyArea = studyAreaLarge,
-                     destinationPath = speciesPaths$inputPath,
-                     filename2 = paste0("rstLCC_", runName, '.tif'),
-                     useCache = TRUE,
-                     userTags = c("rstLCC2010"))
+# rstLCC2010 <- Cache(prepInputs,
+#                     url = 'https://drive.google.com/file/d/1WcCEkwjnDq74fx3ZBizlIKzLkjW6Nfdf/view?usp=sharing',
+#                     rasterToMatch = rasterToMatchLarge,
+#                     studyArea = studyAreaLarge,
+#                     destinationPath = speciesPaths$inputPath,
+#                     # filename2 = paste0("rstLCC_", runName, '.tif'),
+#                     useCache = TRUE,
+#                     userTags = c("rstLCC2010"))
 flammableMap <- LandR::defineFlammable(LandCoverClassifiedMap = rstLCC2010,
                                        nonFlammClasses = c(13, 16, 17, 18, 19),
                                        mask = rasterToMatchLarge)
-#get objects
-#This should use whatever is loaded in R instead of replacing it
-# studyArea <- shapefile("inputs/ftStJohn_studyArea.shp")
-#
-# rasterToMatch <- raster("inputs/ftStJohn_RTM.tif")
-# studyAreaLarge <- shapefile("inputs/RIA_fiveTSA.shp") %>%
-#   spTransform(., crs(rasterToMatch))
 
 #get sppEquivalencies
 #Create function for updating sub-alpine fir longevity and reverting Betu_pap to 150 - this lowers it's maxB inflation
 firAgeUpdate <- function(sT) {
   sT[species == "Abie_las", longevity := 300]
-  # sT[species == "Betu_pap", longevity := 150]
+  sT[species == "Betu_pap", longevity := 150]
   sT[, shadetolerance := as.numeric(shadetolerance)]
   sT[species == 'Pice_eng', shadetolerance := 2.5]
   sT[species == 'Pice_mar', shadetolerance := 2.5]
@@ -51,6 +45,13 @@ minRelativeB_RIA <- function(pixelCohortData){
                              X1 = 0.13, X2 = 0.21, X3 = 0.29, X4 = 0.42, X5 = 0.65)
   return(minRelativeB)
 }
+
+if (runName == "BC"){
+  slivThresh <- 2e9 #BC will have 18 - seems reasonable
+} else {
+  slivThresh <- 1e9 #for Yukon, polys aggregated in advance
+}
+
 
 speciesParameters <- list(
   Biomass_speciesData = list(
@@ -71,17 +72,16 @@ speciesParameters <- list(
     , speciesUpdateFunction = list(
       quote(LandR::speciesTableUpdate(sim$species, sim$speciesTable, sim$sppEquiv, P(sim)$sppEquivCol)),
       quote(firAgeUpdate(sT = sim$species)))
-    ),
-    gmcsDataPrep = list(
-    GCM = 'CCSM4_RCP4.5'
-    , useHeight = TRUE),
-   Biomass_speciesParameters = list(
+  ),
+  gmcsDataPrep = list(
+    useHeight = TRUE),
+  Biomass_speciesParameters = list(
     sppEquivCol = 'RIA'
     , useHeight = FALSE
     , GAMMknots = list(
       "Abie_las" = 3,
-      # "Betu_pap" = 3,
-      # "Pice_eng" = 4,
+      "Betu_pap" = 3,
+      "Pice_eng" = 4,
       "Pice_gla" = 3,
       "Pice_mar" = 4,
       "Pinu_con" = 4,
@@ -89,8 +89,8 @@ speciesParameters <- list(
     )
     , constrainGrowthCurve = list(
       "Abie_las" = c(0.3, .7),
-      # "Betu_pap" = c(0, 0.3),
-      # "Pice_eng" = c(0.3, .7),
+      "Betu_pap" = c(0, 0.3),
+      "Pice_eng" = c(0.3, .7),
       "Pice_gla" = c(0.3, .7),
       "Pice_mar" = c(0.4, 1),
       "Pinu_con" = c(0.3, .7),
@@ -98,8 +98,8 @@ speciesParameters <- list(
     )
     , constrainMortalityShape = list(
       "Abie_las" = c(15, 25),
-      # "Betu_pap" = c(15, 20),
-      # "Pice_eng" = c(15, 25),
+      "Betu_pap" = c(15, 20),
+      "Pice_eng" = c(15, 25),
       "Pice_gla" = c(15, 25),
       "Pice_mar" = c(15, 25),
       "Pinu_con" = c(15, 25),
@@ -107,15 +107,18 @@ speciesParameters <- list(
     )
     , quantileAgeSubset = list(
       "Abie_las" = 95, #N = 250 ''
-      # "Betu_pap" = 95, #N = 96
-      # "Pice_eng" = 95, #N = 130
+      "Betu_pap" = 95, #N = 96
+      "Pice_eng" = 95, #N = 130
       "Pice_gla" = 95, #N = 1849
       "Pice_mar" = 95, #N = 785
       "Pinu_con" = 97, # N = 3172, 99 not an improvement. Maybe 97
       "Popu_tre" = 99 # N = 1997, trying 99
-      )),
+    )),
   scfmLandcoverInit = list(
-    sliverThreshold = 1e9 #1000 km2
+    sliverThreshold = slivThresh #1000 km2
+  ),
+  scfmDriver = list(
+    targetN = 4000
   )
 )
 
@@ -128,13 +131,13 @@ speciesObjects <- list(
   , 'rasterToMatchLarge' = rasterToMatchLarge
   , 'rstLCC' = rstLCC2010
   , 'vegMap' = rstLCC2010
+  , 'ecoregionRst' = ecoregionRst
   , 'flammableMap' = flammableMap
   , 'fireRegimePolys' = fireRegimePolys
 )
 
-
 speciesModules <- c('PSP_Clean', "Biomass_speciesData", 'Biomass_borealDataPrep', 'Biomass_speciesParameters',
-                    'scfmLandcoverInit', 'scfmRegime')
+                    'scfmLandcoverInit', 'scfmRegime', "scfmDriver")
 
 simOutSpp <- Cache(simInitAndSpades, times = list(start = times$start, end = times$start + 1)
                    , params = speciesParameters
@@ -146,34 +149,3 @@ simOutSpp <- Cache(simInitAndSpades, times = list(start = times$start, end = tim
                    , loadOrder = unlist(speciesModules)
                    , userTags = "simOutSpp",
                    cacheRepo = speciesPaths$cachePath)
-
-#SCFM Driver - moved this out because the driver is such a pain #
-
-scfmDriverObjs <- list(
-  'vegMap' = rstLCC2010,
-  'studyArea' = studyArea,
-  'fireRegimeRas' = simOutSpp$fireRegimeRas,
-  'fireRegimePolys' = simOutSpp$fireRegimePolys,
-  'scfmRegimePars' = simOutSpp$scfmRegimePars,
-  'landscapeAttr' = simOutSpp$landscapeAttr,
-  'flammableMap' = simOutSpp$flammableMap
-)
-
-scfmParams <- list(
-  scfmDriver = list(
-    targetN = 5000
-  )
-)
-scfmPaths <- speciesPaths
-scfmPaths$cachePath <- "scfmCache"
-simScfmDriver <- Cache(simInitAndSpades
-                       , times = list(start = times$start, end = times$start + 1)
-                       , params = scfmParams
-                       , modules = 'scfmDriver'
-                       , objects = scfmDriverObjs
-                       , paths = scfmPaths
-                       , debug = TRUE
-                       , .plotInitialTime = NA
-                       , loadOrder = unlist(speciesModules)
-                       , userTags = c("scfmDriver", "runName"),
-                       cacheRepo = scfmPaths$cachePath)

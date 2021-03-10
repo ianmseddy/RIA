@@ -293,6 +293,7 @@ amc::.gc()
 #figure out
 
 data.table::setDTthreads(2)
+rm(simOutSpp)
 mySim <- simInit(times = times, params = parameters, modules = modules, objects = objects,
                  paths = paths, loadOrder = unlist(modules), outputs = outputs)
 amc::.gc()
