@@ -8,6 +8,10 @@ model <- 'Access1'
 scenario <- 'RCP4.5'
 gmcsDriver <- "LandR.CS"
 
-rep <- 1
+rep <- 'noBEC'
+if (gmcsDriver == "LandR.CS"){
 outputDir <- file.path('outputs', runName, paste0(model, '-', scenario), paste0(model,"_", rep))
+} else {
+  outputDir <- file.path("outputs", runName, paste0("noLandRCS_", rep))
+}
 source('yukonScripts/global_Yukon.R')

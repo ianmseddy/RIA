@@ -208,35 +208,35 @@ sourceClimDataYukon <- function(scenario, model = 'CCSM4'){
                              fun = 'raster::stack') #get the high quality stuff
     }
 
-   # } if (model == "INM-CM4") {
-     # if (scenario == "RCP8.5") {
-     #   ATAstack <- prepInputs(url = "https://drive.google.com/file/d/14ZtIzThyinEX-DayV_NQV3Q4TlVKtXU8/view?usp=sharing",
-     #                          targetFile = 'Yukon_1ArcMinute_CCSM4_RCP85_ATA2011-2100.grd',
-     #                          alsoExtract = 'Yukon_1ArcMinute_CCSM4_RCP85_ATA2011-2100.gri',
-     #                          destinationPath = 'inputs',
-     #                          filename2 = 'inputs/Yukon/Yukon_1ArcMinute_CCSM4_RCP85_ATA2011-2100.grd',
-     #                          fun = 'raster::brick')
-     #   CMIstack <- prepInputs(url = 'https://drive.google.com/file/d/14ZtIzThyinEX-DayV_NQV3Q4TlVKtXU8/view?usp=sharing',
-     #                          targetFile = 'Yukon_1ArcMinute_CCSM4_RCP85_CMI2011-2100.grd',
-     #                          alsoExtract = 'Yukon_1ArcMinute_CCSM4_RCP85_CMI2011-2100.gri',
-     #                          destinationPath = 'inputs',
-     #                          filename2 = 'inputs/Yukon/Yukon_1ArcMinute_CCSM4_RCP85_CMI2011-2100.grd',
-     #                          fun = 'raster::brick') #get the high quality stuff
-     #
-     # } else if (scenario == "RCP4.5") {
-     #   ATAstack <- prepInputs(url = "https://drive.google.com/file/d/1Bd4O_EIkeU2Y-RjWhCUkkYGoe-dgAvU2/view?usp=sharing",
-     #                          targetFile = 'Yukon_1ArcMinute_CCSM4_RCP45_ATA2011-2100.grd',
-     #                          alsoExtract = 'Yukon_1ArcMinute_CCSM4_RCP45_ATA2011-2100.gri',
-     #                          destinationPath = 'inputs',
-     #                          filename2 = 'inputs/Yukon_1ArcMinute_CCSM4_45_ATA2011-2100.grd',
-     #                          fun = 'raster::stack')
-     #   CMIstack <- prepInputs(url = 'https://drive.google.com/file/d/1Bd4O_EIkeU2Y-RjWhCUkkYGoe-dgAvU2/view?usp=sharing',
-     #                          targetFile = 'Yukon_1ArcMinute_CCSM4_RCP45_CMI2011-2100.grd',
-     #                          alsoExtract = 'Yukon_1ArcMinute_CCSM4_RCP45_CMI2011-2100.gri',
-     #                          destinationPath = 'inputs',
-     #                          filename2 = 'inputs/Yukon_1ArcMinute_CCSM4_45_CMI2011-2100.grd',
-     #                          fun = 'raster::stack') #get the high quality stuff
-     # }
+   } if (model == "INM-CM4") {
+   if (scenario == "RCP8.5") {
+     # ATAstack <- prepInputs(url = "https://drive.google.com/file/d/14ZtIzThyinEX-DayV_NQV3Q4TlVKtXU8/view?usp=sharing",
+     #                        targetFile = 'Yukon_1ArcMinute_CCSM4_RCP85_ATA2011-2100.grd',
+     #                        alsoExtract = 'Yukon_1ArcMinute_CCSM4_RCP85_ATA2011-2100.gri',
+     #                        destinationPath = 'inputs',
+     #                        filename2 = 'inputs/Yukon/Yukon_1ArcMinute_CCSM4_RCP85_ATA2011-2100.grd',
+     #                        fun = 'raster::brick')
+     # CMIstack <- prepInputs(url = 'https://drive.google.com/file/d/14ZtIzThyinEX-DayV_NQV3Q4TlVKtXU8/view?usp=sharing',
+     #                        targetFile = 'Yukon_1ArcMinute_CCSM4_RCP85_CMI2011-2100.grd',
+     #                        alsoExtract = 'Yukon_1ArcMinute_CCSM4_RCP85_CMI2011-2100.gri',
+     #                        destinationPath = 'inputs',
+     #                        filename2 = 'inputs/Yukon/Yukon_1ArcMinute_CCSM4_RCP85_CMI2011-2100.grd',
+     #                        fun = 'raster::brick') #get the high quality stuff
+
+   } else if (scenario == "RCP4.5") {
+     ATAstack <- prepInputs(url = "https://drive.google.com/file/d/1bsevS1FHLXeLE6UrLDH5X1PqVY8S5Skz/view?usp=sharing",
+                            targetFile = 'wholeRIA_1ArcMin_INM-CM4_RCP45_ATA2011-2100.grd',
+                            alsoExtract = 'wholeRIA_1ArcMin_INM-CM4_RCP45_ATA2011-2100.gri',
+                            destinationPath = 'inputs',
+                            filename2 = 'inputs/wholeRIA_1ArcMin_INM-CM4_RCP45_ATA2011-2100.grd',
+                            fun = 'raster::stack')
+     CMIstack <- prepInputs(url = 'https://drive.google.com/file/d/1bsevS1FHLXeLE6UrLDH5X1PqVY8S5Skz/view?usp=sharing',
+                            targetFile = 'wholeRIA_1ArcMin_INM-CM4_RCP45_CMI2011-2100.grd',
+                            alsoExtract = 'wholeRIA_1ArcMin_INM-CM4_RCP45_CMI2011-2100.gri',
+                            destinationPath = 'inputs',
+                            filename2 = 'inputs/wholeRIA_1ArcMin_INM-CM4_RCP45_CMI2011-2100.grd',
+                            fun = 'raster::stack') #get the high quality stuff
+   }
 
   } else if (model == 'CanESM2') {
     if (scenario == "RCP8.5") {
@@ -268,62 +268,62 @@ sourceClimDataYukon <- function(scenario, model = 'CCSM4'){
                              fun = 'raster::stack') #get the high quality stuff
 
     }
-  # } else if (model == 'CNRM CM5') {
-  #   if (scenario == 'RCP4.5'){
-  #     ATAstack <- prepInputs(url = "https://drive.google.com/file/d/1KwobnIwRd9klNR4_45X_WOnjTLFQgS8J/view?usp=sharing",
-  #                            targetFile = 'RIA_1ArcMinute_CNRM_CM5_RCp45_ATA2011-2100.grd',
-  #                            alsoExtract = 'RIA_1ArcMinute_CNRM_CM5_RCp45_ATA2011-2100.gri',
-  #                            destinationPath = 'inputs',
-  #                            filename2 = 'inputs/RIA_1ArcMinute_CanESM2_45_ATA2011-2100.grd',
-  #                            fun = 'raster::stack')
-  #     CMIstack <- prepInputs(url = 'https://drive.google.com/file/d/1KwobnIwRd9klNR4_45X_WOnjTLFQgS8J/view?usp=sharing',
-  #                            targetFile = 'RIA_1ArcMinute_CNRM_CM5_RCp45_CMI2011-2100.grd',
-  #                            alsoExtract = 'RIA_1ArcMinute_CNRM_CM5_RCp45_CMI2011-2100.gri',
-  #                            destinationPath = 'inputs',
-  #                            filename2 = 'inputs/RIA_1ArcMinute_CNRM_CM5_45_CMI2011-2100.grd',
-  #                            fun = 'raster::stack') #get the high quality stuff
-  #   } else {
-  #     ATAstack <- prepInputs(url = "https://drive.google.com/file/d/15idufxxqwAVPU2RR_3S_txKoTnQKFGJw/view?usp=sharing",
-  #                            targetFile = 'RIA_1ArcMinute_CNRM_CM5_RCP85_ATA2011-2100.grd',
-  #                            alsoExtract = 'RIA_1ArcMinute_CNRM_CM5_RCP85_ATA2011-2100.gri',
-  #                            destinationPath = 'inputs',
-  #                            filename2 = 'inputs/RIA_1ArcMinute_CanESM2_45_ATA2011-2100.grd',
-  #                            fun = 'raster::stack')
-  #     CMIstack <- prepInputs(url = 'https://drive.google.com/file/d/15idufxxqwAVPU2RR_3S_txKoTnQKFGJw/view?usp=sharing',
-  #                            targetFile = 'RIA_1ArcMinute_CNRM_CM5_RCP85_CMI2011-2100.grd',
-  #                            alsoExtract = 'RIA_1ArcMinute_CNRM_CM5_RCP85_CMI2011-2100.gri',
-  #                            destinationPath = 'inputs',
-  #                            filename2 = 'inputs/RIA_1ArcMinute_CNRM_CM5_85_CMI2011-2100.grd',
-  #                            fun = 'raster::stack') #get the high quality stuff
-  #   }
-  # } else if (model == 'CSIRO MK3') {
-  #   if (scenario == 'RCP4.5') {
-  #     ATAstack <- prepInputs(url = "https://drive.google.com/file/d/1iye_G-F6Dxm7Pd4IDbgdwwvJ-KW9pj3-/view?usp=sharing",
-  #                            targetFile = 'RIA_1ArcMinute_CSIRO_mk3_ATA2011-2100.grd',
-  #                            alsoExtract = 'RIA_1ArcMinute_CSIRO_mk3_ATA2011-2100.gri',
-  #                            destinationPath = 'inputs',
-  #                            filename2 = 'inputs/RIA_1ArcMinute_CSIRO_mk3_45_ATA2011-2100.grd',
-  #                            fun = 'raster::stack')
-  #     CMIstack <- prepInputs(url = 'https://drive.google.com/file/d/1iye_G-F6Dxm7Pd4IDbgdwwvJ-KW9pj3-/view?usp=sharing',
-  #                            targetFile = 'RIA_1ArcMinute_CSIRO_mk3_CMI2011-2100.grd',
-  #                            alsoExtract = 'RIA_1ArcMinute_CSIRO_mk3_CMI2011-2100.gri',
-  #                            destinationPath = 'inputs',
-  #                            filename2 = 'inputs/RIA_1ArcMinute_CSIRO_mk3_45_CMI2011-2100.grd',
-  #                            fun = 'raster::stack') #get the high quality stuff
-  #   } else {
-  #     ATAstack <- prepInputs(url = "https://drive.google.com/file/d/1SZ8zDH5H3frLIiwXa8M6t0W15Rueh9Nf/view?usp=sharing",
-  #                            targetFile = 'RIA_1ArcMinute_CSIRO_mk3_ATA2011-2100.grd',
-  #                            alsoExtract = 'RIA_1ArcMinute_CSIRO_mk3_ATA2011-2100.gri',
-  #                            destinationPath = 'inputs',
-  #                            filename2 = 'inputs/RIA_1ArcMinute_CSIRO_mk3_45_ATA2011-2100.grd',
-  #                            fun = 'raster::stack')
-  #     CMIstack <- prepInputs(url = 'https://drive.google.com/file/d/1SZ8zDH5H3frLIiwXa8M6t0W15Rueh9Nf/view?usp=sharing',
-  #                            targetFile = 'RIA_1ArcMinute_CSIRO_mk3_CMI2011-2100.grd',
-  #                            alsoExtract = 'RIA_1ArcMinute_CSIRO_mk3_CMI2011-2100.gri',
-  #                            destinationPath = 'inputs',
-  #                            filename2 = 'inputs/RIA_1ArcMinute_CSIRO_mk3_45_CMI2011-2100.grd',
-  #                            fun = 'raster::stack')
-  #   }
+  } else if (model == 'CNRM CM5') {
+    if (scenario == 'RCP4.5'){
+      ATAstack <- prepInputs(url = "https://drive.google.com/file/d/1IC3hQw0ms555KsSeVuCeE5wwtToc9mUh/view?usp=sharing",
+                             targetFile = 'wholeRIA_1ArcMin_CNRM-CM5_RCP45_ATA2011-2100.grd',
+                             alsoExtract = 'wholeRIA_1ArcMin_CNRM-CM5_RCP45_ATA2011-2100.gri',
+                             destinationPath = 'inputs',
+                             filename2 = 'inputs/wholeRIA_1ArcMin_CNRM-CM5_RCP45_ATA2011-2100.grd',
+                             fun = 'raster::stack')
+      CMIstack <- prepInputs(url = 'https://drive.google.com/file/d/1IC3hQw0ms555KsSeVuCeE5wwtToc9mUh/view?usp=sharing',
+                             targetFile = 'wholeRIA_1ArcMin_CNRM-CM5_RCP45_CMI2011-2100.grd',
+                             alsoExtract = 'wholeRIA_1ArcMin_CNRM-CM5_RCP45_CMI2011-2100.gri',
+                             destinationPath = 'inputs',
+                             filename2 = 'inputs/wholeRIA_1ArcMin_CNRM-CM5_RCP45_CMI2011-2100.grd',
+                             fun = 'raster::stack') #get the high quality stuff
+    } else {
+      # ATAstack <- prepInputs(url = "https://drive.google.com/file/d/15idufxxqwAVPU2RR_3S_txKoTnQKFGJw/view?usp=sharing",
+      #                        targetFile = 'RIA_1ArcMinute_CNRM_CM5_RCP85_ATA2011-2100.grd',
+      #                        alsoExtract = 'RIA_1ArcMinute_CNRM_CM5_RCP85_ATA2011-2100.gri',
+      #                        destinationPath = 'inputs',
+      #                        filename2 = 'inputs/RIA_1ArcMinute_CanESM2_45_ATA2011-2100.grd',
+      #                        fun = 'raster::stack')
+      # CMIstack <- prepInputs(url = 'https://drive.google.com/file/d/15idufxxqwAVPU2RR_3S_txKoTnQKFGJw/view?usp=sharing',
+      #                        targetFile = 'RIA_1ArcMinute_CNRM_CM5_RCP85_CMI2011-2100.grd',
+      #                        alsoExtract = 'RIA_1ArcMinute_CNRM_CM5_RCP85_CMI2011-2100.gri',
+      #                        destinationPath = 'inputs',
+      #                        filename2 = 'inputs/RIA_1ArcMinute_CNRM_CM5_85_CMI2011-2100.grd',
+      #                        fun = 'raster::stack') #get the high quality stuff
+    }
+  } else if (model == 'CSIRO MK3') {
+    if (scenario == 'RCP4.5') {
+      ATAstack <- prepInputs(url = "https://drive.google.com/file/d/1iKty7F12M17gzj-koa8hcnTU1nZm0MZ_/view?usp=sharing",
+                             targetFile = 'wholeRIA_1ArcMin_CSIRO-Mk3_ATA2011-2100.grd',
+                             alsoExtract = 'wholeRIA_1ArcMin_CSIRO-Mk3_ATA2011-2100.gri',
+                             destinationPath = 'inputs',
+                             filename2 = 'inputs/wholeRIA_1ArcMin_CSIRO-Mk3_ATA2011-2100.grd',
+                             fun = 'raster::stack')
+      CMIstack <- prepInputs(url = 'https://drive.google.com/file/d/1iKty7F12M17gzj-koa8hcnTU1nZm0MZ_/view?usp=sharing',
+                             targetFile = 'wholeRIA_1ArcMin_CSIRO-Mk3_CMI2011-2100.grd',
+                             alsoExtract = 'wholeRIA_1ArcMin_CSIRO-Mk3_CMI2011-2100.gri',
+                             destinationPath = 'inputs',
+                             filename2 = 'inputs/wholeRIA_1ArcMin_CSIRO-Mk3_CMI2011-2100.grd',
+                             fun = 'raster::stack') #get the high quality stuff
+    } else {
+      # ATAstack <- prepInputs(url = "https://drive.google.com/file/d/1SZ8zDH5H3frLIiwXa8M6t0W15Rueh9Nf/view?usp=sharing",
+      #                        targetFile = 'RIA_1ArcMinute_CSIRO_mk3_ATA2011-2100.grd',
+      #                        alsoExtract = 'RIA_1ArcMinute_CSIRO_mk3_ATA2011-2100.gri',
+      #                        destinationPath = 'inputs',
+      #                        filename2 = 'inputs/RIA_1ArcMinute_CSIRO_mk3_45_ATA2011-2100.grd',
+      #                        fun = 'raster::stack')
+      # CMIstack <- prepInputs(url = 'https://drive.google.com/file/d/1SZ8zDH5H3frLIiwXa8M6t0W15Rueh9Nf/view?usp=sharing',
+      #                        targetFile = 'RIA_1ArcMinute_CSIRO_mk3_CMI2011-2100.grd',
+      #                        alsoExtract = 'RIA_1ArcMinute_CSIRO_mk3_CMI2011-2100.gri',
+      #                        destinationPath = 'inputs',
+      #                        filename2 = 'inputs/RIA_1ArcMinute_CSIRO_mk3_45_CMI2011-2100.grd',
+      #                        fun = 'raster::stack')
+    }
   } else if (model == 'Access1') {
     if (scenario == 'RCP4.5') {
       ATAstack <- prepInputs(url = "https://drive.google.com/file/d/1NjQL3828TB3aXfULQJ2xT5Jdph1SasAr/view?usp=sharing",
