@@ -7,13 +7,13 @@ library(LandR)
 #with AM project, include repName (AMstatus  + repName)
 
 options("reproducible.useNewDigestAlgorithm" = 2)
-options("reproducible.useGDAL" = FALSE) #this machine doesnt' have it, so don't look
+options("reproducible.useGDAL" = TRUE) #this machine doesnt' have it, so don't look
 
 times <- list(start = 2011, end = 2061)
 # devtools::install_github("PredictiveEcology/LandR@development")
 data.table::setDTthreads(2)
 #need LandR.CS
-googledrive::drive_deauth()
+
 
 setPaths(inputPath = file.path('inputs', runName),
          modulePath = "modules",
@@ -25,8 +25,9 @@ paths <- getPaths()
 #there is a script showing how Yukon study area was made - involves GIS cleaning, v. slow
 
 #eventually, revert to prepInputsLCC - but this is much faster for now
-if (runName == "Yukon"){
- studyArea <- shapefile("inputs/Yukon/studyAreaYukon.shp")
+if (runName == "Yukon") {
+ studyArea <- prepInputs(url = 'https://drive.google.com/file/d/14f2Hb0UDL6sn49gXAFY9LxPQ6NTgUflM/view?usp=sharing',
+                         destinationPath = paths$inputPath)
  ecoregionRst <- Cache(prepInputs,
                        url = 'https://drive.google.com/file/d/1Dce0_rSBkxKjNM9q7-Zsg0JFidYu6cKP/view?usp=sharing',
                        studyArea = studyArea,
@@ -34,7 +35,8 @@ if (runName == "Yukon"){
  #this is the rasterized and reprojected Yukon BECZones from
  # https://map-data.service.yukon.ca/GeoYukon/Biophysical/Bioclimate_Zones_and_Subzones/Bioclimate_zones_and_subzones.zip
 } else {
-  studyArea <- shapefile("inputs/BC/studyAreaBC.shp")
+  studyArea <- prepInputs(url = 'https://drive.google.com/file/d/1LAXjmuaCt0xOWP-Nmll3xfRqCq-NbJP-/view?usp=sharing',
+                          destinationPath = paths$inputPath)
   ecoregionRst <- Cache(prepInputs,
                         url = 'https://drive.google.com/file/d/1R38CXviHP72pbMq7hqV5CfT-jdJFZuWL/view?usp=sharing',
                         studyArea = studyArea,
@@ -43,13 +45,21 @@ if (runName == "Yukon"){
 }
 
 rstLCC2010 <- Cache(prepInputs,
+                    url = 'https://drive.google.com/file/d/1WcCEkwjnDq74fx3ZBizlIKzLkjW6Nfdf/view?usp=sharing',
                     targetFile = 'CAN_LC_2010_CAL.tif',
-                    destinationPath = 'inputs',
+                    method = 'ngb',
+                    destinationPath = paths$inputPath,
                     filename2 = paste0(runName, "_LCC2010.tif"),
-                    quick = 'filename2',
-                    archive = 'CanadaLandcover2010.zip',
+                    # quick = 'filename2',
+                    # archive = 'CanadaLandcover2010.zip',
                     rasterToMatch = ecoregionRst,
                     studyArea = studyArea)
+
+ecoregionRst <- postProcess(ecoregionRst, rasterToMatch = rstLCC2010) #extents dont match
+
+if (!compareCRS(ecoregionRst, rstLCC2010)) {
+  stop("crs proplem with ecoregionRst, rstLCC2010")
+}
 
 studyAreaLarge <- studyArea
 rasterToMatch <- rstLCC2010
@@ -68,7 +78,7 @@ fireRegimePolys <- prepInputs(url = 'http://sis.agr.gc.ca/cansis/nsdb/ecostrat/r
                               rasterToMatch = rasterToMatch,
                               # filename2 = NULL,
                               userTags = c("fireRegimePolys"))
-if (runName == "Yukon"){
+if (runName == "Yukon") {
   #Yukon will use a custom fireRegimePolys due to large areas with no fire
   #ecoregions 9 and 10 are combined, along with 5, 6, and 11. The latter have
   #almost no fires, the former have a combined 150 (with few large ones)
@@ -90,7 +100,7 @@ if (runName == "Yukon"){
 
 source('generateSppEquiv.R')
 
-if (runName == "Yukon"){
+if (runName == "Yukon") {
   sppEquivalencies_CA <- sppEquivalencies_CA[!RIA %in% c('Pice_eng', 'Betu_pap')] #drop engelmann in Yukon
 }
 
@@ -127,7 +137,7 @@ source('sourceClimateData.R')
 
 times <- list(start = 2011, end = 2061)
 
-if (gmcsDriver == "LandR.CS"){
+if (gmcsDriver == "LandR.CS") {
   climObjs <- sourceClimDataYukon(scenario = scenario, model = model)
 }
 
@@ -227,7 +237,7 @@ if (readInputs) {
     , 'species' = simOutSpp$species
     , 'speciesLayers' = simOutSpp$speciesLayers
     , 'speciesEcoregion' = simOutSpp$speciesEcoregion
-    , 'sufficientLight' =simOutSpp$sufficientLight
+    , 'sufficientLight' = simOutSpp$sufficientLight
     , 'rawBiomassMap' = simOutSpp$rawBiomassMap
     , 'vegMap' = simOutSpp$vegMap
     , 'landscapeAttr' = simOutSpp$landscapeAttr
@@ -268,7 +278,7 @@ opts <- options(
   "reproducible.cachePath" = paths$cachePath,
   "reproducible.showSimilar" = TRUE, #Always keep this on or scfm will miss cached driver params
   "reproducible.useCloud" = FALSE,
-  'reproducible.useGDAL' = FALSE,
+  'reproducible.useGDAL' = TRUE,
   "spades.moduleCodeChecks" = FALSE, # Turn off all module's code checking
   'spades.recoveryMode' = 0 #don't use recovery mode in production
 )
@@ -293,7 +303,7 @@ amc::.gc()
 #figure out
 
 data.table::setDTthreads(2)
-rm(simOutSpp)
+# rm(simOutSpp)
 mySim <- simInit(times = times, params = parameters, modules = modules, objects = objects,
                  paths = paths, loadOrder = unlist(modules), outputs = outputs)
 amc::.gc()
