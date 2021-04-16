@@ -2,7 +2,7 @@ library(SpaDES.core)
 library(reproducible)
 
 
-AM <- FALSE
+AM <- TRUE
 runName <- '5TSAs'
 #writeOutputs will write objects from parameterization to disk
 writeOutputs <- FALSE
@@ -10,10 +10,13 @@ writeOutputs <- FALSE
 readInputs <- TRUE
 model <- 'Access1'
 scenario <- 'RCP4.5'
-rep <- 1
+
+gmcsDriver <- "LandRCSAM"
+
+rep <- 'demo'
 if (AM) {
   repName <- paste0('AM90yr', rep)
-} else {
+  } else {
   repName <- paste0("noAM90yr", rep)
 }
 outputDir <- file.path('outputs', runName, paste0(model, '-', scenario), paste0(model, repName))

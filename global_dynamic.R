@@ -25,7 +25,7 @@ parameters <- list(
     , gmcsGrowthLimits = c(33, 150)
     , gmcsMortLimits = c(33, 300)
     , plotOverstory = TRUE
-    , growthAndMortalityDrivers = "LandR.CS"
+    , growthAndMortalityDrivers = "LandRCSAM"
     , vegLeadingProportion = 0
     , keepClimateCols = TRUE #Try this
     , minCohortBiomass = 5

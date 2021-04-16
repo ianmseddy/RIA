@@ -96,7 +96,7 @@ sourceClimData <- function(scenario, model = 'CCSM4'){
                              filename2 = 'inputs/RIA_1ArcMinute_CNRM_CM5_85_CMI2011-2100.grd',
                              fun = 'raster::stack') #get the high quality stuff
     }
-  } else if (model == 'CSIRO MK3') {
+  } else if (model == 'CSIRO-Mk3') {
     if (scenario == 'RCP4.5') {
       ATAstack <- prepInputs(url = "https://drive.google.com/file/d/1iye_G-F6Dxm7Pd4IDbgdwwvJ-KW9pj3-/view?usp=sharing",
                              targetFile = 'RIA_1ArcMinute_CSIRO_mk3_ATA2011-2100.grd',
@@ -208,7 +208,7 @@ sourceClimDataYukon <- function(scenario, model = 'CCSM4'){
                              fun = 'raster::stack') #get the high quality stuff
     }
 
-   } if (model == "INM-CM4") {
+   } else if (model == "INM-CM4") {
    if (scenario == "RCP8.5") {
      # ATAstack <- prepInputs(url = "https://drive.google.com/file/d/14ZtIzThyinEX-DayV_NQV3Q4TlVKtXU8/view?usp=sharing",
      #                        targetFile = 'Yukon_1ArcMinute_CCSM4_RCP85_ATA2011-2100.grd',
@@ -268,7 +268,7 @@ sourceClimDataYukon <- function(scenario, model = 'CCSM4'){
                              fun = 'raster::stack') #get the high quality stuff
 
     }
-  } else if (model == 'CNRM CM5') {
+  } else if (model == 'CNRM-CM5') {
     if (scenario == 'RCP4.5'){
       ATAstack <- prepInputs(url = "https://drive.google.com/file/d/1IC3hQw0ms555KsSeVuCeE5wwtToc9mUh/view?usp=sharing",
                              targetFile = 'wholeRIA_1ArcMin_CNRM-CM5_RCP45_ATA2011-2100.grd',
@@ -296,17 +296,17 @@ sourceClimDataYukon <- function(scenario, model = 'CCSM4'){
       #                        filename2 = 'inputs/RIA_1ArcMinute_CNRM_CM5_85_CMI2011-2100.grd',
       #                        fun = 'raster::stack') #get the high quality stuff
     }
-  } else if (model == 'CSIRO MK3') {
+  } else if (model == 'CSIRO-Mk3') {
     if (scenario == 'RCP4.5') {
       ATAstack <- prepInputs(url = "https://drive.google.com/file/d/1iKty7F12M17gzj-koa8hcnTU1nZm0MZ_/view?usp=sharing",
-                             targetFile = 'wholeRIA_1ArcMin_CSIRO-Mk3_ATA2011-2100.grd',
-                             alsoExtract = 'wholeRIA_1ArcMin_CSIRO-Mk3_ATA2011-2100.gri',
+                             targetFile = 'wholeRIA_1ArcMin_CSIRO-Mk3_RCP45_ATA2011-2100.grd',
+                             alsoExtract = 'wholeRIA_1ArcMin_CSIRO-Mk3_RCP45_ATA2011-2100.gri',
                              destinationPath = 'inputs',
                              filename2 = 'inputs/wholeRIA_1ArcMin_CSIRO-Mk3_ATA2011-2100.grd',
                              fun = 'raster::stack')
       CMIstack <- prepInputs(url = 'https://drive.google.com/file/d/1iKty7F12M17gzj-koa8hcnTU1nZm0MZ_/view?usp=sharing',
-                             targetFile = 'wholeRIA_1ArcMin_CSIRO-Mk3_CMI2011-2100.grd',
-                             alsoExtract = 'wholeRIA_1ArcMin_CSIRO-Mk3_CMI2011-2100.gri',
+                             targetFile = 'wholeRIA_1ArcMin_CSIRO-Mk3_RCP45_CMI2011-2100.grd',
+                             alsoExtract = 'wholeRIA_1ArcMin_CSIRO-Mk3_RCP45_CMI2011-2100.gri',
                              destinationPath = 'inputs',
                              filename2 = 'inputs/wholeRIA_1ArcMin_CSIRO-Mk3_CMI2011-2100.grd',
                              fun = 'raster::stack') #get the high quality stuff
