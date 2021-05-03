@@ -110,7 +110,7 @@ if (writeOutputs) {
 source('sourceClimateData.R')
 # test <- sourceClimData(scenario = scenario, model = model)
 
-times <- list(start = 2011, end = 2061)
+times <- list(start = 2011, end = 2101)
 
 if (gmcsDriver == "LandR.CS"){
   climObjs <- sourceClimDataYukon(scenario = scenario, model = model)
@@ -120,7 +120,7 @@ if (gmcsDriver == "LandR.CS"){
 spadesModulesDirectory <- c(file.path("modules"), 'modules/scfm') # where modules are
 
 modules <- list('Biomass_core', 'Biomass_regeneration'
-                #, "scfmIgnition", "scfmEscape", "scfmSpread"
+                , "scfmIgnition", "scfmEscape", "scfmSpread"
                 )
 if (gmcsDriver == "LandR.CS") {
   modules <- c(list("PSP_Clean", "gmcsDataPrep"), modules)
