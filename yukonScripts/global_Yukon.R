@@ -4,12 +4,13 @@ library(raster)
 library(sf)
 library(data.table)
 library(LandR)
+library(rgeos)
 #with AM project, include repName (AMstatus  + repName)
 
 options("reproducible.useNewDigestAlgorithm" = 2)
 options("reproducible.useGDAL" = TRUE) #this machine doesnt' have it, so don't look
 
-times <- list(start = 2011, end = 2061)
+times <- list(start = 2011, end = 2021)
 # devtools::install_github("PredictiveEcology/LandR@development")
 data.table::setDTthreads(2)
 #need LandR.CS
@@ -41,7 +42,7 @@ if (runName == "Yukon") {
                         url = 'https://drive.google.com/file/d/1R38CXviHP72pbMq7hqV5CfT-jdJFZuWL/view?usp=sharing',
                         studyArea = studyArea,
                         destinationPath = paths$inputPath)
-  #this is the rasterized and reprojecetd BECZones
+  #this is the rasterized and reprojected BECZones
 }
 
 rstLCC2010 <- Cache(prepInputs,
@@ -75,15 +76,17 @@ studyAreaPSP <- prepInputs(url = 'https://drive.google.com/open?id=10yhleaumhwa3
 fireRegimePolys <- prepInputs(url = 'http://sis.agr.gc.ca/cansis/nsdb/ecostrat/region/ecoregion_shp.zip',
                               destinationPath = paths$inputPath,
                               studyArea = studyArea,
-                              rasterToMatch = rasterToMatch,
+                              # rasterToMatch = rasterToMatch,
                               # filename2 = NULL,
                               userTags = c("fireRegimePolys"))
+fireRegimePolys <- spTransform(fireRegimePolys, CRSobj = crs(rasterToMatch))
+
 if (runName == "Yukon") {
   #Yukon will use a custom fireRegimePolys due to large areas with no fire
   #ecoregions 9 and 10 are combined, along with 5, 6, and 11. The latter have
   #almost no fires, the former have a combined 150 (with few large ones)
   #after accounting for slivers < 100 km2, we are left with 8 areas
-  fireRegimePolys$newID <- 1:length(fireRegimePolys)
+  fireRegimePolys$newID <- fireRegimePolys$REGION_ID
   fireRegimePolys <- sf::st_as_sf(fireRegimePolys)
   fireRegimePolys[fireRegimePolys$REGION_ID %in% c(54, 60),]$newID <- 20
   fireRegimePolys[fireRegimePolys$REGION_ID %in% c(46, 47, 63),]$newID <- 19
@@ -97,7 +100,8 @@ if (runName == "Yukon") {
 
 #in case we ever need it
 # rgdal::writeOGR(fireRegimePolys, dsn = paths$inputPath, layer = 'modifiedFireRegimePolys', driver = "ESRI Shapefile")
-
+#for now due to postProcess bug
+#fireRegimePolys <- shapefile(file.path(paths$inputPath, "modifiedFireRegimePolys.shp"))
 source('generateSppEquiv.R')
 
 if (runName == "Yukon") {
@@ -106,28 +110,9 @@ if (runName == "Yukon") {
 
 if (writeOutputs) {
   source('yukonScripts/generateSpeciesLayersYukon.R')
-  saveRDS(simOutSpp$biomassMap, file.path(paths$outputPath, 'paramData','biomassMap.rds'))
-  saveRDS(simOutSpp$cohortData, file.path(paths$outputPath, 'paramData','cohortData.rds'))
-  saveRDS(simOutSpp$ecodistrict, file.path(paths$outputPath, 'paramData','ecodistrict.rds'))
-  saveRDS(simOutSpp$ecoregion, file.path(paths$outputPath, 'paramData','ecoregion.rds'))
-  saveRDS(simOutSpp$ecoregionMap, file.path(paths$outputPath, 'paramData','ecoregionMap.rds'))
-  saveRDS(simOutSpp$pixelGroupMap, file.path(paths$outputPath, 'paramData','pixelGroupMap.rds'))
-  saveRDS(simOutSpp$minRelativeB, file.path(paths$outputPath, 'paramData','minRelativeB.rds'))
-  saveRDS(simOutSpp$species, file.path(paths$outputPath, 'paramData','species.rds'))
-  saveRDS(simOutSpp$speciesLayers, file.path(paths$outputPath, 'paramData','speciesLayers.rds'))
-  saveRDS(simOutSpp$speciesEcoregion, file.path(paths$outputPath, 'paramData','speciesEcoregion.rds'))
-  saveRDS(simOutSpp$sufficientLight, file.path(paths$outputPath, 'paramData','sufficientLight.rds'))
-  saveRDS(simOutSpp$rawBiomassMap, file.path(paths$outputPath, 'paramData','rawBiomassMap.rds'))
-  saveRDS(simOutSpp$vegMap, file.path(paths$outputPath, 'paramData','vegMap.rds'))
-  saveRDS(simOutSpp$landscapeAttr, file.path(paths$outputPath, 'paramData','landscapeAttr.rds'))
-  saveRDS(simOutSpp$flammableMap, file.path(paths$outputPath, 'paramData','flammableMap.rds'))
-  saveRDS(simOutSpp$cellsByZone, file.path(paths$outputPath, 'paramData','cellsByZone.rds'))
-  saveRDS(simOutSpp$fireRegimePolys, file.path(paths$outputPath, 'paramData','fireRegimePolys.rds'))
-  saveRDS(simOutSpp$scfmRegimePars, file.path(paths$outputPath, 'paramData','scfmRegimePars.rds'))
-  saveRDS(simOutSpp$firePoints, file.path(paths$outputPath, 'paramData','firePoints.rds'))
-  saveRDS(simOutSpp$scfmDriverPars, file.path(paths$outputPath, 'paramData','scfmDriverPars.rds'))
-  saveRDS(simOutSpp$fireRegimeRas, file.path(paths$outputPath, 'paramData','fireRegimeRas.rds'))
-} else {
+  # saveSimList(simOutSpp, filename = file.path(paths$inputPath, "simOutSpp.rds"), fileBackend = 2)
+  saveSimList(sim = simOutSpp, filename = file.path(outputDir, "../paramData","simOutSpp.rds"), fileBackend = 2)
+} else if (!readInputs) {
   source("yukonScripts/generateSpeciesLayersYukon.R")
 }
 #the dynamic prt
@@ -135,7 +120,7 @@ if (writeOutputs) {
 source('sourceClimateData.R')
 # test <- sourceClimData(scenario = scenario, model = model)
 
-times <- list(start = 2011, end = 2061)
+times <- list(start = 2011, end = 2101)
 
 if (gmcsDriver == "LandR.CS") {
   climObjs <- sourceClimDataYukon(scenario = scenario, model = model)
@@ -144,8 +129,9 @@ if (gmcsDriver == "LandR.CS") {
 
 spadesModulesDirectory <- c(file.path("modules"), 'modules/scfm') # where modules are
 
-modules <- list('Biomass_core', 'Biomass_regeneration',
-                "scfmIgnition", "scfmEscape", "scfmSpread")
+modules <- list('Biomass_core', 'Biomass_regeneration'
+                , "scfmIgnition", "scfmEscape", "scfmSpread"
+                )
 if (gmcsDriver == "LandR.CS") {
   modules <- c(list("PSP_Clean", "gmcsDataPrep"), modules)
 } else {
@@ -163,7 +149,7 @@ parameters <- list(
     , sppEquivCol = "RIA"
     , gmcsGrowthLimits = c(33, 150)
     , gmcsMortLimits = c(33, 300)
-    , plotOverstory = TRUE
+    , plotOverstory = FALSE
     , growthAndMortalityDrivers = gmcsDriver
     , vegLeadingProportion = 0
     , keepClimateCols = TRUE #
@@ -184,78 +170,42 @@ parameters <- list(
 )
 
 if (readInputs) {
-  objects <- list(
-    "studyArea" = studyArea
-    , 'studyAreaPSP' = studyAreaPSP
-    ,"rasterToMatch" = rasterToMatch
-    ,"sppEquiv" = sppEquivalencies_CA
-    ,"sppColorVect" = sppColors
-    ,"studyAreaLarge" = studyAreaLarge
-    ,"rasterToMatchLarge" = rasterToMatchLarge   #always provide a RTM
-    , 'biomassMap' = readRDS(file.path(paths$outputPath, 'paramData', 'biomassMap.rds'))
-    , 'cohortData' = readRDS(file.path(paths$outputPath, 'paramData', 'cohortData.rds'))
-    , 'ecodistrict' = readRDS(file.path(paths$outputPath, 'paramData', 'ecodistrict.rds'))
-    , 'ecoregion' = readRDS(file.path(paths$outputPath, 'paramData', 'ecoregion.rds'))
-    , 'ecoregionMap' = readRDS(file.path(paths$outputPath, 'paramData', 'ecoregionMap.rds'))
-    , 'pixelGroupMap' = readRDS(file.path(paths$outputPath, 'paramData', 'pixelGroupMap.rds'))
-    , 'minRelativeB' = readRDS(file.path(paths$outputPath, 'paramData', 'minRelativeB.rds'))
-    , 'species' = readRDS(file.path(paths$outputPath, 'paramData', 'species.rds'))
-    , 'speciesLayers' = readRDS(file.path(paths$outputPath, 'paramData', 'speciesLayers.rds'))
-    , 'speciesEcoregion' = readRDS(file.path(paths$outputPath, 'paramData', 'speciesEcoregion.rds'))
-    , 'sufficientLight' = readRDS(file.path(paths$outputPath, 'paramData', 'sufficientLight.rds'))
-    , 'rawBiomassMap' = readRDS(file.path(paths$outputPath, 'paramData', 'rawBiomassMap.rds'))
-    , 'vegMap' = readRDS(file.path(paths$outputPath, 'paramData', 'vegMap.rds'))
-    , 'landscapeAttr' = readRDS(file.path(paths$outputPath, 'paramData', 'landscapeAttr.rds'))
-    , 'flammableMap' = readRDS(file.path(paths$outputPath, 'paramData', 'flammableMap.rds'))
-    , 'cellsByZone'  = readRDS(file.path(paths$outputPath, 'paramData', 'cellsByZone.rds'))
-    , 'fireRegimePolys' = readRDS(file.path(paths$outputPath, 'paramData', 'fireRegimePolys.rds'))
-    , 'scfmRegimePars' = readRDS(file.path(paths$outputPath, 'paramData', 'scfmRegimePars.rds'))
-    , 'firePoints' = readRDS(file.path(paths$outputPath, 'paramData', 'firePoints.rds'))
-    , 'scfmDriverPars' = readRDS(file.path(paths$outputPath, 'paramData', 'scfmDriverPars.rds'))
-    , 'fireRegimeRas' = readRDS(file.path(paths$outputPath, 'paramData', 'fireRegimeRas.rds'))
-    , 'ATAstack' = climObjs$ATAstack
-    , 'CMIstack' = climObjs$CMIstack
-    , 'CMInormal' = climObjs$CMInormal
-  )
-  amc::.gc()
-} else {
-  #this will add about 20 GB of RAM... might be possible with Yukon
-  objects <- list(
-    'studyArea' = studyArea #always provide a SA
-    , 'studyAreaPSP' = studyAreaPSP
-    , 'rasterToMatch' = rasterToMatch
-    , 'sppEquiv' = sppEquivalencies_CA
-    , 'sppColorVect' = sppColors
-    , 'studyAreaLarge' = studyAreaLarge
-    , 'rasterToMatchLarge' = rasterToMatchLarge   #always provide a RTM
-    , 'biomassMap' = simOutSpp$biomassMap
-    , 'cohortData' = simOutSpp$cohortData
-    , 'ecoregion' = simOutSpp$ecoregion
-    , 'ecoregionMap' = simOutSpp$ecoregionMap
-    , 'pixelGroupMap' = simOutSpp$pixelGroupMap
-    , 'minRelativeB' = simOutSpp$minRelativeB
-    , 'species' = simOutSpp$species
-    , 'speciesLayers' = simOutSpp$speciesLayers
-    , 'speciesEcoregion' = simOutSpp$speciesEcoregion
-    , 'sufficientLight' = simOutSpp$sufficientLight
-    , 'rawBiomassMap' = simOutSpp$rawBiomassMap
-    , 'vegMap' = simOutSpp$vegMap
-    , 'landscapeAttr' = simOutSpp$landscapeAttr
-    , 'flammableMap' = simOutSpp$flammableMap
-    , 'cellsByZone' = simOutSpp$cellsByZone
-    , 'fireRegimePolys' = fireRegimePolys
-    , 'scfmRegimePars' = simOutSpp$scfmRegimePars
-    , 'firePoints' = simOutSpp$firePoints
-    , 'scfmDriverPars' = simOutSpp$scfmDriverPars
-    , 'fireRegimeRas' = simOutSpp$fireRegimeRas
-    , 'ATAstack' = climObjs$ATAstack
-    , 'CMIstack' = climObjs$CMIstack
-    , 'CMInormal' = climObjs$CMInormal
-  )
-
-  # rm(simOutSpp)
-  rm(speciesObjects)
+  simOutSpp <- readRDS(file.path(paths$inputPath, "simOutSpp.rds"))
 }
+
+objects <- list(
+  'studyArea' = studyArea #always provide a SA
+  , 'studyAreaPSP' = studyAreaPSP
+  , 'rasterToMatch' = rasterToMatch
+  , 'sppEquiv' = sppEquivalencies_CA
+  , 'sppColorVect' = sppColors
+  , 'studyAreaLarge' = studyAreaLarge
+  , 'rasterToMatchLarge' = rasterToMatchLarge   #always provide a RTM
+  , 'biomassMap' = simOutSpp$biomassMap
+  , 'cohortData' = simOutSpp$cohortData
+  , 'ecoregion' = simOutSpp$ecoregion
+  , 'ecoregionMap' = simOutSpp$ecoregionMap
+  , 'pixelGroupMap' = simOutSpp$pixelGroupMap
+  , 'minRelativeB' = simOutSpp$minRelativeB
+  , 'species' = simOutSpp$species
+  , 'speciesLayers' = simOutSpp$speciesLayers
+  , 'speciesEcoregion' = simOutSpp$speciesEcoregion
+  , 'sufficientLight' = simOutSpp$sufficientLight
+  , 'rawBiomassMap' = simOutSpp$rawBiomassMap
+  , 'vegMap' = simOutSpp$vegMap
+  , 'landscapeAttr' = simOutSpp$landscapeAttr
+  , 'flammableMap' = simOutSpp$flammableMap
+  , 'cellsByZone' = simOutSpp$cellsByZone
+  , 'fireRegimePolys' = fireRegimePolys
+  , 'scfmRegimePars' = simOutSpp$scfmRegimePars
+  , 'firePoints' = simOutSpp$firePoints
+  , 'scfmDriverPars' = simOutSpp$scfmDriverPars
+  , 'fireRegimeRas' = simOutSpp$fireRegimeRas
+  , 'ATAstack' = climObjs$ATAstack
+  , 'CMIstack' = climObjs$CMIstack
+  , 'CMInormal' = climObjs$CMInormal
+)
+
 
 #change the paths for simulation. outputPath specifies climateModel + rep
 setPaths(cachePath =  file.path(getwd(), "cache"),
